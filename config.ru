@@ -1,2 +1,2 @@
-require 'hello'
+require 'acani'
 run Sinatra::Application
