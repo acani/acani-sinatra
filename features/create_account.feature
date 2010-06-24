@@ -1,8 +1,8 @@
 Feature: person goes on acani
 
-  As a person
-  I want to go on acani
-  So that I can connect and play with others nearby with similar interests
+  As a user
+  I want to connect to acani
+  So that I can connect & play with others nearby with similar interests
 
   Scenario: create account
     Given I am not yet on acani

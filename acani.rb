@@ -3,7 +3,7 @@ require 'mongo'
 
 # Configure
 configure :development do
-  DB = Mongo::Connection.new.db("acani")
+  DB = Mongo::Connection.new.db("stg-acani")
 end
 
 configure :production do
@@ -36,7 +36,7 @@ end
 
 # get all users nearby; update last_online
 get '/users/:uid/:did/:lat/:lng' do
-  persons = DB.collection("persons")
+  persons = DB.collection("users")
 
   # update lat & lng for uid
   # TODO

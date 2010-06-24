@@ -23,7 +23,9 @@ def ethnicity
   end
 end
 
-db = Mongo::Connection.new.db("acani")
+cx = Mongo::Connection.new
+cx.drop_database("stg-acani")
+db = cx.db("stg-acani")
 
 # The devices collection stores data about the device
 # devices = db.collection("devices")
@@ -77,11 +79,11 @@ db = Mongo::Connection.new.db("acani")
 # We could do this later by conversion if it makes sence
 # What Facebook data are they okay with us storing?
 # fb_id, location, groups, messages
-persons = db.collection("persons")
+persons = db.collection("users")
 persons.remove # start fresh in case not empty
 person_array = []
 
-3_304.times do
+101.times do
   person = {
     :fb_id => rand(4_000),
     :name => Faker::Name.name[0,10].rstrip,
