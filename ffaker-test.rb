@@ -25,6 +25,18 @@ end
 
 db = Mongo::Connection.new.db("acani")
 
+# The devices collection stores data about the device
+# devices = db.collection("devices")
+# device = {
+#   :id => ,
+#   :users => [
+#     :id => "1231jfkj123",
+#     :name => "Matt"
+#   ], # ids & names only
+#   :os => 4
+#   # ...
+# }
+
 # # TODO: add more groups and nest subgroups within supergroups
 # groups = db.collection("groups")
 # groups.remove # start fresh in case not empty
@@ -81,10 +93,11 @@ person_array = []
     :sdis => rand < 0.5 ? true : false, # show_distance? (flag)
     :loc => [ Faker::Geolocation.lat, Faker::Geolocation.lng ],    
     # We'll implement these later
-    # :favs => [],   # just store ids, not names
-    # :block => [],  # just store ids, not names
-    # :groups => [], # just store ids, not names
-    # :unread => [], # store: messages, from_id, time_stamp
+    # :favs => [],    # just store ids, not names
+    # :block => [],   # just store ids, not names
+    # :groups => [],  # just store ids, not names
+    # :unread => [],  # store: messages, from_id, time_stamp
+    :devices => [], # just store ids, not names
     :ethnic => ethnicity,
     :height => rand(50) + 140, # in cm
     :weight => rand(45) + 100, # in lbs

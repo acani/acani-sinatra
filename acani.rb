@@ -13,16 +13,29 @@ configure :production do
   DB = conn.db(uri.path.gsub(/^\//, ''))
 end
 
+# get all users linked with the specified device
+get '/users/:device_id' do |d|
+  
+end
 
-# create a new user and respond with user_id & users nearby
-post '/users' do
-  "device_id = #{params[:device_id]};
-   latitude = #{params[:latitude]};
-   longitude = #{params[:longitude]}.\n"
+# create a new user (default) and respond with user_id & users nearby
+post '/users/:device_id/:latitude/:longitude' do |d, lat, lng|
+  
+  # persons.insert({'devices.id' => {'$push' => d}})
+  # 
+  # # create new user
+  # user = {
+  #   :devices => d
+  # }
+  # persons.insert()
+
+  "device_id = #{d};
+   latitude = #{lat};
+   longitude = #{lng}.\n"
 end
 
 # get all users nearby; update last_online
-get '/users/:uid/:lat/:lng' do
+get '/users/:uid/:did/:lat/:lng' do
   persons = DB.collection("persons")
 
   # update lat & lng for uid
