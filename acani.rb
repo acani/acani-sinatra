@@ -47,7 +47,7 @@ get '/users/:uid/:did/:lat/:lng' do
   json = ""
   persons.find({"loc" => {"$near" => [params[:lat].to_f, params[:lng].to_f]}},
                {:limit => 20}).each { |p| json += p.inspect }
-  json
+  json.to_json
   # Example with group
   # db.places.find( { location : { $near : [50,50] }, group : 'baseball' } );
 end
