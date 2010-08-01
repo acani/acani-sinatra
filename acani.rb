@@ -1,3 +1,4 @@
+require 'ruby-debug'
 require 'json'
 require 'sinatra'
 require 'mongo'
@@ -45,12 +46,27 @@ get '/users/:uid/:did/:lat/:lng' do
 
   # return users nearby (ignore with similar groups for now)
   # http://www.mongodb.org/display/DOCS/Geospatial+Indexing
-  json = ""
+  response = []
   persons.find({"loc" => {"$near" => [params[:lat].to_f, params[:lng].to_f]}},
-               {:limit => 20}).each { |p| json += p.inspect }
-  json.to_json
+               {:limit => 20}).each do |p|
+                 p["_id"] = p["_id"].to_s
+                 response << p
+               end
+  # response = [{"_id"=>"4c22e72a146728fe80000048", "fb_id"=>1719, "name"=>"Abelardo W", "head"=>"Dolor totam est.", "about"=>"Laudantium enim dolorem enim. Modi et qui temporibus.", "age"=>19, "sex"=>"male", "likes"=>"women", "sdis"=>true, "loc"=>[40.927955, -72.204989], "devices"=>[], "ethnic"=>"latino", "height"=>152, "weight"=>126, "weblink"=>"www.paucek.info", "fb_link"=>"ruth_langworth", "created"=>"2010-03-14T21:20:14+0000", "updated"=>"2010-06-21T08:09:13+0000", "last_on"=>"2010-06-21T08:26:46+0000"}]
+  JSON.pretty_generate(response)
+
   # Example with group
   # db.places.find( { location : { $near : [50,50] }, group : 'baseball' } );
+end
+
+# hard-coded json for testing
+get '/sample-json' do
+  response = ''
+  f = File.open("sample.json", "r") 
+  f.each_line do |line|
+    response += line
+  end
+  response
 end
 
 # Person creates account
