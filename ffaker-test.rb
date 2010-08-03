@@ -24,8 +24,8 @@ def ethnicity
 end
 
 cx = Mongo::Connection.new
-cx.drop_database("stg-acani")
-db = cx.db("stg-acani")
+cx.drop_database("stg_acani")
+db = cx.db("stg_acani")
 
 # The devices collection stores data about the device
 # devices = db.collection("devices")
@@ -79,12 +79,12 @@ db = cx.db("stg-acani")
 # We could do this later by conversion if it makes sence
 # What Facebook data are they okay with us storing?
 # fb_id, location, groups, messages
-persons = db.collection("users")
-persons.remove # start fresh in case not empty
-person_array = []
+users = db.collection("users")
+usr_pic_grid = Mongo::Grid.new(db, "usr_pic")
+usr_thb_grid = Mongo::Grid.new(db, "usr_thb")
 
-101.times do
-  person = {
+1.upto 101 do |n|
+  user = {
     :fb_id => rand(4_000),
     :name => Faker::Name.name[0,10].rstrip,
     :head => Faker::Lorem.sentence(1)[0,50].rstrip,
@@ -109,13 +109,31 @@ person_array = []
     :updated => "2010-06-21T08:09:13+0000",
     :last_on => "2010-06-21T08:26:46+0000",
   }
-  person_array << person
+
+  id = users.insert(user)
+
+  begin
+    ext = 'jpg'
+    pic = File.new("picture_#{n}.#{ext}")
+    thb = File.new("thumb_#{n}.#{ext}")
+  rescue
+    ext = 'png'
+    pic = File.new("picture_#{n}.#{ext}")
+    thb = File.new("thumb_#{n}.#{ext}")
+  end
+  ext = "jpeg" if ext == "jpg"
+
+  usr_pic_grid.put(pic, 
+    :content_type => "image/#{ext}", 
+    :_id          => id)
+
+  usr_thb_grid.put(thb, 
+    :content_type => "image/#{ext}", 
+    :_id          => id)
 end
 
-persons.insert(person_array)
-
-persons.create_index([[:loc, "2d"]])
-persons.create_index([[:loc, "2d"], ['groups.id', 1]])
+users.create_index([[:loc, "2d"]])
+users.create_index([[:loc, "2d"], ['groups.id', 1]])
 
 # m = Mongo::Connection.new # (optional host/port args)
 # m.database_names.each { |name| puts name }

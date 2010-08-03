@@ -5,7 +5,7 @@ require 'mongo'
 
 # Configure
 configure :development do
-  DB = Mongo::Connection.new.db("stg-acani")
+  DB = Mongo::Connection.new.db("stg_acani")
 end
 
 configure :production do
@@ -53,8 +53,9 @@ get '/users/:uid/:did/:lat/:lng' do
                  response << p
                end
   # response = [{"_id"=>"4c22e72a146728fe80000048", "fb_id"=>1719, "name"=>"Abelardo W", "head"=>"Dolor totam est.", "about"=>"Laudantium enim dolorem enim. Modi et qui temporibus.", "age"=>19, "sex"=>"male", "likes"=>"women", "sdis"=>true, "loc"=>[40.927955, -72.204989], "devices"=>[], "ethnic"=>"latino", "height"=>152, "weight"=>126, "weblink"=>"www.paucek.info", "fb_link"=>"ruth_langworth", "created"=>"2010-03-14T21:20:14+0000", "updated"=>"2010-06-21T08:09:13+0000", "last_on"=>"2010-06-21T08:26:46+0000"}]
-  JSON.pretty_generate(response)
-
+  # JSON.pretty_generate(response)
+  debugger
+  response.to_json
   # Example with group
   # db.places.find( { location : { $near : [50,50] }, group : 'baseball' } );
 end
@@ -67,6 +68,29 @@ get '/sample-json' do
     response += line
   end
   response
+end
+
+def pic_fs_name
+  case params[:type]
+  when "large"
+    "usr_pic"
+  else
+    "usr_thb"
+  end
+end
+
+# post new picture of specific user
+post '/:uid/picture' do
+  grid = Mongo::Grid.new(DB, pic_fs_name)
+  id = grid.put(image, :content_type => params[:content_type], :metadata => {:updated => Time.now.to_i})
+end
+
+# get picture of specific user
+get '/:uid/picture' do
+  grid = Mongo::Grid.new(DB, pic_fs_name)
+  image = grid.get(BSON::ObjectID(params[:uid]))
+  content_type image.content_type
+  image.read  
 end
 
 # Person creates account
