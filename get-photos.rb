@@ -1,3 +1,4 @@
+require 'rubygems' # for ruby-1.8
 require 'nokogiri'
 require 'open-uri'
 require 'RMagick'
