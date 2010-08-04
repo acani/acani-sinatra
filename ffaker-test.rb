@@ -1,3 +1,4 @@
+require 'rubygems' # for ruby-1.8
 require 'mongo'
 require 'ffaker'
 
@@ -85,7 +86,7 @@ usr_thb_grid = Mongo::Grid.new(db, "usr_thb")
 
 1.upto 101 do |n|
   user = {
-    :fb_id => rand(4_000),
+    :fbid => rand(4_000),
     :name => Faker::Name.name[0,10].rstrip,
     :head => Faker::Lorem.sentence(1)[0,50].rstrip,
     :about => Faker::Lorem.paragraph(1)[0,130].rstrip,
@@ -93,7 +94,7 @@ usr_thb_grid = Mongo::Grid.new(db, "usr_thb")
     :sex => rand < 0.5 ? "male" : "female",
     :likes => men_women_both,
     :sdis => rand < 0.5 ? true : false, # show_distance? (flag)
-    :loc => [ Faker::Geolocation.lat, Faker::Geolocation.lng ],    
+    :loc => [Faker::Geolocation.lat, Faker::Geolocation.lng],    
     # We'll implement these later
     # :favs => [],    # just store ids, not names
     # :block => [],   # just store ids, not names

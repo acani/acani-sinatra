@@ -1,7 +1,9 @@
-require 'ruby-debug'
-require 'json'
+# require 'ruby-debug'
+require 'rubygems' # for ruby-1.8
+require 'json/pure'
 require 'sinatra'
 require 'mongo'
+
 
 # Configure
 configure :development do
@@ -23,13 +25,13 @@ end
 # create a new user (default) and respond with user_id & users nearby
 post '/users/:device_id/:latitude/:longitude' do |d, lat, lng|
   
-  # persons.insert({'devices.id' => {'$push' => d}})
+  # users.insert({'devices.id' => {'$push' => d}})
   # 
   # # create new user
   # user = {
   #   :devices => d
   # }
-  # persons.insert()
+  # users.insert()
 
   "device_id = #{d};
    latitude = #{lat};
@@ -38,7 +40,7 @@ end
 
 # get all users nearby; update last_online
 get '/users/:uid/:did/:lat/:lng' do
-  persons = DB.collection("users")
+  users = DB.collection("users")
 
   # update lat & lng for uid
   # TODO
@@ -46,16 +48,11 @@ get '/users/:uid/:did/:lat/:lng' do
 
   # return users nearby (ignore with similar groups for now)
   # http://www.mongodb.org/display/DOCS/Geospatial+Indexing
-  response = []
-  persons.find({"loc" => {"$near" => [params[:lat].to_f, params[:lng].to_f]}},
-               {:limit => 20}).each do |p|
-                 p["_id"] = p["_id"].to_s
-                 response << p
-               end
-  # response = [{"_id"=>"4c22e72a146728fe80000048", "fb_id"=>1719, "name"=>"Abelardo W", "head"=>"Dolor totam est.", "about"=>"Laudantium enim dolorem enim. Modi et qui temporibus.", "age"=>19, "sex"=>"male", "likes"=>"women", "sdis"=>true, "loc"=>[40.927955, -72.204989], "devices"=>[], "ethnic"=>"latino", "height"=>152, "weight"=>126, "weblink"=>"www.paucek.info", "fb_link"=>"ruth_langworth", "created"=>"2010-03-14T21:20:14+0000", "updated"=>"2010-06-21T08:09:13+0000", "last_on"=>"2010-06-21T08:26:46+0000"}]
-  # JSON.pretty_generate(response)
-  debugger
-  response.to_json
+  cursor = users.find(
+    {"loc" => {"$near" => [params[:lat].to_f, params[:lng].to_f]}},
+    {:limit => 20})
+  content_type "application/json"
+  JSON.pretty_generate(cursor.to_a)
   # Example with group
   # db.places.find( { location : { $near : [50,50] }, group : 'baseball' } );
 end
@@ -93,6 +90,6 @@ get '/:uid/picture' do
   image.read  
 end
 
-# Person creates account
+# User creates account
 
-# Person requests people nearby
+# User requests people nearby

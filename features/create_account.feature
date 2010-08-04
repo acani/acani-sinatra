@@ -1,4 +1,4 @@
-Feature: person goes on acani
+Feature: user goes on acani
 
   As a user
   I want to connect to acani
