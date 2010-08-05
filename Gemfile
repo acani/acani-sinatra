@@ -3,4 +3,5 @@ source "http://rubygems.org"
 gem "json"
 gem "sinatra"
 gem "mongo"
+gem "haml"
 # gem "bson_ext"  # speeds up mongo

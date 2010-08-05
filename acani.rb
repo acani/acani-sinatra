@@ -3,7 +3,8 @@ require 'rubygems' # for ruby-1.8
 require 'json/pure'
 require 'sinatra'
 require 'mongo'
-
+require 'haml'
+require 'ruby-debug'
 
 # Configure
 configure :development do
@@ -16,6 +17,8 @@ configure :production do
   conn = Mongo::Connection.from_uri(ENV['MONGOHQ_URL'])
   DB = conn.db(uri.path.gsub(/^\//, ''))
 end
+
+set :haml, {:format => :html5 } # default Haml format is :xhtml
 
 # get all users linked with the specified device
 get '/users/:device_id' do |d|
@@ -76,12 +79,6 @@ def pic_fs_name
   end
 end
 
-# post new picture of specific user
-post '/:uid/picture' do
-  grid = Mongo::Grid.new(DB, pic_fs_name)
-  id = grid.put(image, :content_type => params[:content_type], :metadata => {:updated => Time.now.to_i})
-end
-
 # get picture of specific user
 get '/:uid/picture' do
   grid = Mongo::Grid.new(DB, pic_fs_name)
@@ -90,6 +87,26 @@ get '/:uid/picture' do
   image.read  
 end
 
-# User creates account
+# get form for browser picture upload
+get '/:uid/picture/upload' do
+  @uid = params[:uid]
+  @type = params[:type]
+  return haml(:picture)
+end
 
-# User requests people nearby
+# post new picture of specific user
+post '/:uid/picture' do
+  grid = Mongo::Grid.new(DB, pic_fs_name)
+  
+  unless params[:file] && (tmp_file = params[:file][:tempfile])
+    @error = "No file selected"
+    return haml(:picture)
+  end
+
+  id = BSON::ObjectID(params[:uid])
+  file_type = params[:file][:type]
+
+  grid.delete(id) # if exists  
+  grid.put(tmp_file.read, :_id => id, :content_type => file_type)
+  "Upload complete"
+end
