@@ -87,7 +87,7 @@ get '/:obj_id/picture' do
   image.read  
 end
 
-# get form for browser picture upload
+# get form to edit object from browser
 get '/:obj_id/edit' do
   @obj_id = params[:obj_id]
   return haml(:edit)
@@ -106,7 +106,7 @@ module Mongo
   end
 end
 
-# update profile of specific user
+# update object's picture & profile info
 put '/:obj_id' do
   obj_id = BSON::ObjectID(params.delete "obj_id")
   params.delete "_method" # delete param added by sinatra
@@ -136,5 +136,36 @@ put '/:obj_id' do
   params.each_pair {|k, v| params[k] = Integer(v) rescue v }
   users.update({"_id" => obj_id},
                {"thb_md5" => thb_md5, "pic_md5" => pic_md5}.merge(params))
+  "OK"
+end
+
+
+def delete_img(id)
+  grid = Mongo::Grid.new(DB, "usr_pic")
+  grid.delete(id)
+  grid = Mongo::Grid.new(DB, "usr_thb")
+  grid.delete(id)
+end
+
+# delete object's picture
+delete '/:obj_id/picture' do
+  obj_id = BSON::ObjectID(params[:obj_id])
+
+  delete_img(obj_id)
+
+  users = DB.collection("users")
+  users.find_and_modify({:query => {"_id" => obj_id},
+      :update => {"$unset" => { "pic_md5" => 1, "thb_md5" => 1}}})
+  "OK"
+end
+
+# delete object
+delete '/:obj_id' do
+  obj_id = BSON::ObjectID(params[:obj_id])
+
+  delete_img(obj_id)
+
+  users = DB.collection("users")
+  users.remove({:_id => obj_id})
   "OK"
 end
