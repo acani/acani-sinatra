@@ -139,31 +139,14 @@ put '/:obj_id' do
   "OK"
 end
 
-
-def delete_img(id)
-  grid = Mongo::Grid.new(DB, "usr_pic")
-  grid.delete(id)
-  grid = Mongo::Grid.new(DB, "usr_thb")
-  grid.delete(id)
-end
-
-# delete object's picture
-delete '/:obj_id/picture' do
-  obj_id = BSON::ObjectID(params[:obj_id])
-
-  delete_img(obj_id)
-
-  users = DB.collection("users")
-  users.find_and_modify({:query => {"_id" => obj_id},
-      :update => {"$unset" => { "pic_md5" => 1, "thb_md5" => 1}}})
-  "OK"
-end
-
 # delete object
 delete '/:obj_id' do
   obj_id = BSON::ObjectID(params[:obj_id])
 
-  delete_img(obj_id)
+  grid = Mongo::Grid.new(DB, "usr_pic")
+  grid.delete(obj_id)
+  grid = Mongo::Grid.new(DB, "usr_thb")
+  grid.delete(obj_id)
 
   users = DB.collection("users")
   users.remove({:_id => obj_id})
