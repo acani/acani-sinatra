@@ -1,5 +1,0 @@
-%h1 Upload
-%p= @error
-%form{:action=>"/#{@uid}/picture?type=#{@type}", :method => "post", :enctype => "multipart/form-data"}
-  %input{:type => "file", :name => "file"}
-  %input{:type => "submit", :value => "Upload"}

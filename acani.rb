@@ -80,33 +80,61 @@ def pic_fs_name
 end
 
 # get picture of specific user
-get '/:uid/picture' do
+get '/:obj_id/picture' do
   grid = Mongo::Grid.new(DB, pic_fs_name)
-  image = grid.get(BSON::ObjectID(params[:uid]))
+  image = grid.get(BSON::ObjectID(params[:obj_id]))
   content_type image.content_type
   image.read  
 end
 
 # get form for browser picture upload
-get '/:uid/picture/upload' do
-  @uid = params[:uid]
-  @type = params[:type]
-  return haml(:picture)
+get '/:obj_id/edit' do
+  @obj_id = params[:obj_id]
+  return haml(:edit)
 end
 
-# post new picture of specific user
-post '/:uid/picture' do
-  grid = Mongo::Grid.new(DB, pic_fs_name)
-  
-  unless params[:file] && (tmp_file = params[:file][:tempfile])
-    @error = "No file selected"
-    return haml(:picture)
+
+module Mongo
+  class Grid
+    def put_get_md5(data, opts={})
+      opts.merge!(default_grid_io_opts)
+      file = GridIO.new(@files, @chunks, nil, 'w', opts=opts)
+      file.write(data)
+      file.close
+      file.server_md5
+    end
+  end
+end
+
+# update profile of specific user
+put '/:obj_id' do
+  obj_id = BSON::ObjectID(params.delete "obj_id")
+  params.delete "_method" # delete param added by sinatra
+
+  # update thb & pic
+  if (thb = params.delete "thb") && (thb_tmp = thb[:tempfile]) &&
+    (pic = params.delete "pic") && (pic_tmp = pic[:tempfile])
+
+    def put_img(img, opts={})
+      grid = Mongo::Grid.new(DB, opts[:fs_name])
+      grid.delete(opts[:_id])
+      grid.put_get_md5(img.read,
+          :_id => opts[:_id], :content_type => opts[:content_type])
+    end
+    
+    opts = {:_id => obj_id, :content_type => pic[:type]} # == thb content_type
+    thb_md5 = put_img(thb_tmp, opts.merge({:fs_name => "usr_thb"}))
+    pic_md5 = put_img(pic_tmp, opts.merge({:fs_name => "usr_pic"}))
+
+    # thb_grid = Mongo::Grid.new(DB, 'usr_thb')
+    # thb_grid.delete(obj_id)
+    # thb = thb_grid.put(thb_tmp.read, :_id => obj_id, :content_type => pic[:type])
   end
 
-  id = BSON::ObjectID(params[:uid])
-  file_type = params[:file][:type]
-
-  grid.delete(id) # if exists  
-  grid.put(tmp_file.read, :_id => id, :content_type => file_type)
-  "Upload complete"
+  users = DB.collection("users")
+  # convert numeric Strings to Fixnums
+  params.each_pair {|k, v| params[k] = Integer(v) rescue v }
+  users.update({"_id" => obj_id},
+               {"thb_md5" => thb_md5, "pic_md5" => pic_md5}.merge(params))
+  "OK"
 end

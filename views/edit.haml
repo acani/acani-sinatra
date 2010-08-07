@@ -1,0 +1,22 @@
+%h1 Edit Profile
+%p= @error
+%form{:action=>"/#{@obj_id}", :method => "post", :enctype => "multipart/form-data"}
+  %input{:type => "hidden", :name => "_method", :value => "put"}
+  %p
+    %label Thumbnail
+    %input{:type => "file", :name => "thb"}
+  %p
+    %label Picture
+    %input{:type => "file", :name => "pic"}
+  %p
+    %label Name
+    %input{:type => "text", :name => "name"}
+  %p
+    %label Sex
+    %input{:type => "text", :name => "sex"}
+  %p
+    %label Age
+    %input{:type => "text", :name => "age"}
+  %input{:type => "submit", :value => "Upload"}
+
+/ curl -X PUT -F thb=@Cash.jpg -F pic=@Me-Patty.jpg http://localhost:4567/4c58eec114672834aa000070

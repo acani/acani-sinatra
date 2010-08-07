@@ -108,7 +108,7 @@ usr_thb_grid = Mongo::Grid.new(db, "usr_thb")
     :fb_link => Faker::Internet.user_name,
     :created => "2010-03-14T21:20:14+0000",
     :updated => "2010-06-21T08:09:13+0000",
-    :last_on => "2010-06-21T08:26:46+0000",
+    :last_on => "2010-06-21T08:26:46+0000"
   }
 
   id = users.insert(user)
@@ -134,7 +134,7 @@ usr_thb_grid = Mongo::Grid.new(db, "usr_thb")
 end
 
 users.create_index([[:loc, "2d"]])
-users.create_index([[:loc, "2d"], ['groups.id', 1]])
+# users.create_index([[:loc, "2d"], ['groups.id', 1]])
 
 # m = Mongo::Connection.new # (optional host/port args)
 # m.database_names.each { |name| puts name }
