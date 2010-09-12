@@ -18,11 +18,11 @@ configure :production do
   DB = conn.db(uri.path.gsub(/^\//, ''))
 end
 
-set :haml, {:format => :html5 } # default Haml format is :xhtml
+set :haml, {:format => :html5} # default Haml format is :xhtml
 
 # get all users linked with the specified device
 get '/users/:device_id' do |d|
-  
+  "welcome!"
 end
 
 # create a new user (default) and respond with user_id & users nearby
@@ -44,16 +44,22 @@ end
 # get all users nearby; update last_online
 get '/users/:uid/:did/:lat/:lng' do
   users = DB.collection("users")
+  obj_id = BSON::ObjectID(params[:uid])
+  lat = params[:lat].to_f
+  lng = params[:lng].to_f
 
-  # update lat & lng for uid
-  # TODO
-  uid = params[:uid]
+  # Create user if doesn't yet exist (This should be in the POST method.).
+  # And, update user's location.
+  update({:_id => id}, doc, :upsert => true
+  users.update({"_id" => obj_id},
+               {"loc" => [lat, lng], "updated" => Time.now}, :upsert => true)  
 
-  # return users nearby (ignore with similar groups for now)
+  # Return user (TODO: Optimize by having device create user.).
+  
+
+  # Return users nearby (ignore with similar groups for now)
   # http://www.mongodb.org/display/DOCS/Geospatial+Indexing
-  cursor = users.find(
-    {"loc" => {"$near" => [params[:lat].to_f, params[:lng].to_f]}},
-    {:limit => 20})
+  cursor = users.find({"loc" => {"$near" => [lat, lng]}}, {:limit => 20})
   content_type "application/json"
   JSON.pretty_generate(cursor.to_a)
   # Example with group

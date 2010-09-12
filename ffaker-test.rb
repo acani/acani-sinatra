@@ -106,7 +106,6 @@ usr_thb_grid = Mongo::Grid.new(db, "usr_thb")
     :weight => rand(45) + 100, # in lbs
     :weblink => (rand < 0.3 ? '' : 'www.') + Faker::Internet.domain_name,
     :fb_link => Faker::Internet.user_name,
-    :created => "2010-03-14T21:20:14+0000",
     :updated => "2010-06-21T08:09:13+0000",
     :last_on => "2010-06-21T08:26:46+0000"
   }
