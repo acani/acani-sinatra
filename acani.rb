@@ -44,16 +44,19 @@ end
 # get all users nearby; update last_online
 get '/users/:uid/:did/:lat/:lng' do
   users = DB.collection("users")
-  obj_id = BSON::ObjectID(params[:uid])
   lat = params[:lat].to_f
   lng = params[:lng].to_f
 
   # Create user if doesn't yet exist (This should be in the POST method.).
   # And, update user's location.
-  update({:_id => id}, doc, :upsert => true
-  users.update({"_id" => obj_id},
-               {"loc" => [lat, lng], "updated" => Time.now}, :upsert => true)  
-
+  begin # This requires fixing. Should use device_id, etc.
+    obj_id = BSON::ObjectId(params[:uid])
+    users.update({"_id" => obj_id},
+                 {"loc" => [lat, lng], "updated" => Time.now}, :upsert => true)  
+  rescue
+    # handle error
+  end
+   
   # Return user (TODO: Optimize by having device create user.).
   
 
@@ -88,7 +91,7 @@ end
 # get picture of specific user
 get '/:obj_id/picture' do
   grid = Mongo::Grid.new(DB, pic_fs_name)
-  image = grid.get(BSON::ObjectID(params[:obj_id]))
+  image = grid.get(BSON::ObjectId(params[:obj_id]))
   content_type image.content_type
   image.read  
 end
@@ -114,7 +117,7 @@ end
 
 # update object's picture & profile info
 put '/:obj_id' do
-  obj_id = BSON::ObjectID(params.delete "obj_id")
+  obj_id = BSON::ObjectId(params.delete "obj_id")
   params.delete "_method" # delete param added by sinatra
 
   # update thb & pic
@@ -147,7 +150,7 @@ end
 
 # delete object
 delete '/:obj_id' do
-  obj_id = BSON::ObjectID(params[:obj_id])
+  obj_id = BSON::ObjectId(params[:obj_id])
 
   grid = Mongo::Grid.new(DB, "usr_pic")
   grid.delete(obj_id)
