@@ -93,7 +93,7 @@ users = db.collection("users")
 usr_pic_grid = Mongo::Grid.new(db, "usr_pic")
 usr_thb_grid = Mongo::Grid.new(db, "usr_thb")
 
-1.upto(51) do |n|
+1.upto(51) do |i|
   user = {
     :fbid => rand(4_000),
     :name => Faker::Name.name[0,10].rstrip,
@@ -117,19 +117,20 @@ usr_thb_grid = Mongo::Grid.new(db, "usr_thb")
     :fblink => Faker::Internet.user_name,
     :updated => Time.rand.to_i,
     :laston => Time.rand.to_i,
-    :onstat => rand(2) == 1 ? "online" : "offline" # 1:on, 2:off
+    :onstat => rand(2) == 1 ? "online" : "offline"
   }
 
   id = users.insert(user)
   dir = 'pics-thbs'
+  ii = "%02d" % i
   begin
     ext = 'jpg'
-    pic = File.new("#{dir}/picture_#{n}.#{ext}")
-    thb = File.new("#{dir}/thumb_#{n}.#{ext}")
+    pic = File.new("#{dir}/picture_#{ii}.#{ext}")
+    thb = File.new("#{dir}/thumb_#{ii}.#{ext}")
   rescue
     ext = 'png'
-    pic = File.new("#{dir}/picture_#{n}.#{ext}")
-    thb = File.new("#{dir}/thumb_#{n}.#{ext}")
+    pic = File.new("#{dir}/picture_#{ii}.#{ext}")
+    thb = File.new("#{dir}/thumb_#{ii}.#{ext}")
   end
   ext = "jpeg" if ext == "jpg"
 

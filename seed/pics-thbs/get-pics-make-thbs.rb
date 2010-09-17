@@ -17,11 +17,12 @@ index.css("#ImgCont td > a").each do |l|
   img = Magick::Image::from_blob(blob).first rescue next
   fmt = img.format.downcase; fmt = "jpg" if fmt == "jpeg"
 
-  target = "picture_#{i}.#{fmt}"
+  ii = "%02d" % i
+  target = "picture_#{ii}.#{fmt}"
   puts "\tSaving #{source} to #{target}"
   img.write target
 
   thumb = img.resize_to_fill(75, 75, Magick::NorthGravity)
-  thumb.write "thumb_#{i}.#{fmt}"
+  thumb.write "thumb_#{ii}.#{fmt}"
   i += 1
 end
