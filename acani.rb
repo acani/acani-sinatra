@@ -46,25 +46,31 @@ get '/users/:uid/:did/:lat/:lng' do
   users = DB.collection("users")
   lat = params[:lat].to_f
   lng = params[:lng].to_f
+  now = Time.now # fix time
+  updates = {"loc" => [lat, lng], "last_on" => now, "updated" => now}
 
-  # Create user if doesn't yet exist (This should be in the POST method.).
-  # And, update user's location.
-  begin # This requires fixing. Should use device_id, etc.
-    obj_id = BSON::ObjectId(params[:uid])
-    users.update({"_id" => obj_id},
-                 {"loc" => [lat, lng], "updated" => Time.now}, :upsert => true)  
-  rescue
-    # handle error
+  # Update my location & last_online by uid & return me
+  if (uid = params[:uid]) != '0' && # not new user
+     (me = users.find({"_id" => (uid = BSON::ObjectId(uid))}).first)
+    users.update({"_id" => uid}, {"$set" => updates})
+    me.merge updates
+  else # create new user
+    # insert_with_device_id(params[:did]) # add to POST method too.
+    me = {"devices" => [params[:did]]}.merge updates
+    users.insert(me)
   end
-   
-  # Return user (TODO: Optimize by having device create user.).
-  
+
+  # How should we store timestamps?
+  # "created" : { "d" : "2010-03-29", "t" : "20:15:34" }
+  # "created" : "12343545234"  
 
   # Return users nearby (ignore with similar groups for now)
   # http://www.mongodb.org/display/DOCS/Geospatial+Indexing
-  cursor = users.find({"loc" => {"$near" => [lat, lng]}}, {:limit => 20})
+  nearby_users = users.find({"loc" => {"$near" => [lat, lng]}}, {:limit => 20})
+  
   content_type "application/json"
-  JSON.pretty_generate(cursor.to_a)
+  JSON.pretty_generate(([me]+nearby_users.to_a).map { |u|
+    u.merge "created" => (u["_id"] || u[:_id]).generation_time.to_i })
   # Example with group
   # db.places.find( { location : { $near : [50,50] }, group : 'baseball' } );
 end
@@ -91,9 +97,13 @@ end
 # get picture of specific user
 get '/:obj_id/picture' do
   grid = Mongo::Grid.new(DB, pic_fs_name)
-  image = grid.get(BSON::ObjectId(params[:obj_id]))
-  content_type image.content_type
-  image.read  
+  begin
+    image = grid.get(BSON::ObjectId(params[:obj_id]))
+    content_type image.content_type
+    image.read
+  rescue
+    ""
+  end  
 end
 
 # get form to edit object from browser

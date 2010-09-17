@@ -2,6 +2,15 @@ require 'rubygems' # for ruby-1.8
 require 'mongo'
 require 'ffaker'
 
+class Time
+  def self.rand(years_back=5)
+    year = Time.now.year - Kernel::rand(years_back) - 1
+    month = Kernel::rand(12) + 1
+    day = Kernel::rand(31) + 1
+    Time.local(year, month, day)
+  end
+end
+
 def men_women_both
   case rand(10)
   when 0..3 then "women"
@@ -93,7 +102,7 @@ usr_thb_grid = Mongo::Grid.new(db, "usr_thb")
     :age => rand(20) + 16,
     :sex => rand < 0.5 ? "male" : "female",
     :likes => men_women_both,
-    :sdis => rand < 0.5 ? true : false, # show_distance? (flag)
+    :sdist => rand < 0.5 ? true : false, # show_distance? (flag)
     :loc => [Faker::Geolocation.lat, Faker::Geolocation.lng],    
     # We'll implement these later
     # :favs => [],    # just store ids, not names
@@ -105,21 +114,22 @@ usr_thb_grid = Mongo::Grid.new(db, "usr_thb")
     :height => rand(50) + 140, # in cm
     :weight => rand(45) + 100, # in lbs
     :weblink => (rand < 0.3 ? '' : 'www.') + Faker::Internet.domain_name,
-    :fb_link => Faker::Internet.user_name,
-    :updated => "2010-06-21T08:09:13+0000",
-    :last_on => "2010-06-21T08:26:46+0000"
+    :fblink => Faker::Internet.user_name,
+    :updated => Time.rand.to_i,
+    :laston => Time.rand.to_i,
+    :onstat => rand(2) == 1 ? "online" : "offline" # 1:on, 2:off
   }
 
   id = users.insert(user)
-
+  dir = 'pics-thbs'
   begin
     ext = 'jpg'
-    pic = File.new("picture_#{n}.#{ext}")
-    thb = File.new("thumb_#{n}.#{ext}")
+    pic = File.new("#{dir}/picture_#{n}.#{ext}")
+    thb = File.new("#{dir}/thumb_#{n}.#{ext}")
   rescue
     ext = 'png'
-    pic = File.new("picture_#{n}.#{ext}")
-    thb = File.new("thumb_#{n}.#{ext}")
+    pic = File.new("#{dir}/picture_#{n}.#{ext}")
+    thb = File.new("#{dir}/thumb_#{n}.#{ext}")
   end
   ext = "jpeg" if ext == "jpg"
 

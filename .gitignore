@@ -1,3 +1,5 @@
-pics-thbs.zip
-picture_*
-thumb_*
+.DS_Store
+.localized
+Thumbs.db
+
+pics-thbs*
