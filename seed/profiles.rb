@@ -93,7 +93,7 @@ users = db.collection("users")
 usr_pic_grid = Mongo::Grid.new(db, "usr_pic")
 usr_thb_grid = Mongo::Grid.new(db, "usr_thb")
 
-1.upto 101 do |n|
+1.upto(51) do |n|
   user = {
     :fbid => rand(4_000),
     :name => Faker::Name.name[0,10].rstrip,
