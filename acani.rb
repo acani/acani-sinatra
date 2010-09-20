@@ -5,6 +5,7 @@ require 'sinatra'
 require 'mongo'
 require 'haml'
 require 'ruby-debug'
+require 'constants.rb'
 
 # Configure
 configure :development do
@@ -27,9 +28,9 @@ end
 
 # create a new user (default) and respond with user_id & users nearby
 post '/users/:device_id/:latitude/:longitude' do |d, lat, lng|
-  
+
   # users.insert({'devices.id' => {'$push' => d}})
-  # 
+  #
   # # create new user
   # user = {
   #   :devices => d
@@ -47,7 +48,8 @@ get '/users/:uid/:did/:lat/:lng' do
   lat = params[:lat].to_f
   lng = params[:lng].to_f
   now = Time.now # fix time
-  updates = {"loc" => [lat, lng], "last_on" => now, "updated" => now}
+  updates = {USR[:location] => [lat, lng], USR[:last_online] => now,
+      USR[:updated] => now}
 
   # Update my location & last_online by uid & return me
   if (uid = params[:uid]) != '0' && # not new user
@@ -56,21 +58,22 @@ get '/users/:uid/:did/:lat/:lng' do
     me.merge updates
   else # create new user
     # insert_with_device_id(params[:did]) # add to POST method too.
-    me = {"devices" => [params[:did]]}.merge updates
+    me = {USR[:devices] => [params[:did]]}.merge updates
     users.insert(me)
   end
 
   # How should we store timestamps?
   # "created" : { "d" : "2010-03-29", "t" : "20:15:34" }
-  # "created" : "12343545234"  
+  # "created" : "12343545234"
 
   # Return users nearby (ignore with similar groups for now)
   # http://www.mongodb.org/display/DOCS/Geospatial+Indexing
-  nearby_users = users.find({"loc" => {"$near" => [lat, lng]}}, {:limit => 20})
-  
+  nearby_users = users.find({USR[:location] => {"$near" => [lat, lng]}}, {:limit => 20})
+
   content_type "application/json"
-  JSON.pretty_generate(([me]+nearby_users.to_a).map { |u|
-    u.merge "created" => (u["_id"] || u[:_id]).generation_time.to_i })
+  # JSON.pretty_generate(([me]+nearby_users.to_a).map { |u|
+  #   u.merge "created" => (u["_id"] || u[:_id]).generation_time.to_i })
+  JSON.pretty_generate([me]+nearby_users.to_a)
   # Example with group
   # db.places.find( { location : { $near : [50,50] }, group : 'baseball' } );
 end
@@ -78,7 +81,7 @@ end
 # hard-coded json for testing
 get '/sample-json' do
   response = ''
-  f = File.open("sample.json", "r") 
+  f = File.open("sample.json", "r")
   f.each_line do |line|
     response += line
   end
@@ -103,7 +106,7 @@ get '/:obj_id/picture' do
     image.read
   rescue
     ""
-  end  
+  end
 end
 
 # get form to edit object from browser
@@ -140,7 +143,7 @@ put '/:obj_id' do
       grid.put_get_md5(img.read,
           :_id => opts[:_id], :content_type => opts[:content_type])
     end
-    
+
     opts = {:_id => obj_id, :content_type => pic[:type]} # == thb content_type
     thb_md5 = put_img(thb_tmp, opts.merge({:fs_name => "usr_thb"}))
     pic_md5 = put_img(pic_tmp, opts.merge({:fs_name => "usr_pic"}))
