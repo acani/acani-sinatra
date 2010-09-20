@@ -51,16 +51,16 @@ get '/users/:uid/:did/:lat/:lng' do
   updates = {USR[:location] => [lat, lng], USR[:last_online] => now,
       USR[:updated] => now}
 
-  # Update my location & last_online by uid & return me
-  if (uid = params[:uid]) != '0' && # not new user
-     (me = users.find({"_id" => (uid = BSON::ObjectId(uid))}).first)
-    users.update({"_id" => uid}, {"$set" => updates})
-    me.merge updates
-  else # create new user
-    # insert_with_device_id(params[:did]) # add to POST method too.
-    me = {USR[:devices] => [params[:did]]}.merge updates
-    users.insert(me)
-  end
+  # # Update my location & last_online by uid & return me
+  # if (uid = params[:uid]) != '0' && # not new user
+  #    (me = users.find({"_id" => (uid = BSON::ObjectId(uid))}).first)
+  #   users.update({"_id" => uid}, {"$set" => updates})
+  #   me.merge updates
+  # else # create new user
+  #   # insert_with_device_id(params[:did]) # add to POST method too.
+  #   me = {USR[:devices] => [params[:did]]}.merge updates
+  #   users.insert(me)
+  # end
 
   # How should we store timestamps?
   # "created" : { "d" : "2010-03-29", "t" : "20:15:34" }
@@ -73,7 +73,8 @@ get '/users/:uid/:did/:lat/:lng' do
   content_type "application/json"
   # JSON.pretty_generate(([me]+nearby_users.to_a).map { |u|
   #   u.merge "created" => (u["_id"] || u[:_id]).generation_time.to_i })
-  JSON.pretty_generate([me]+nearby_users.to_a)
+  # JSON.pretty_generate([me]+nearby_users.to_a)
+  JSON.pretty_generate(nearby_users.to_a)
   # Example with group
   # db.places.find( { location : { $near : [50,50] }, group : 'baseball' } );
 end
