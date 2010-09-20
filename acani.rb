@@ -4,12 +4,12 @@ require 'json/pure'
 require 'sinatra'
 require 'mongo'
 require 'haml'
-require 'ruby-debug'
 require 'constants.rb'
 
 # Configure
 configure :development do
-  DB = Mongo::Connection.new.db("stg_acani")
+  require 'ruby-debug'
+  DB = Mongo::Connection.new.db("acani")
 end
 
 configure :production do

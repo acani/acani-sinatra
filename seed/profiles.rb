@@ -35,8 +35,8 @@ def ethnicity
 end
 
 cx = Mongo::Connection.new
-cx.drop_database("stg_acani")
-db = cx.db("stg_acani")
+cx.drop_database("acani")
+db = cx.db("acani")
 
 # The devices collection stores data about the device
 # devices = db.collection("devices")
