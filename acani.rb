@@ -134,7 +134,7 @@ put '/:obj_id' do
   obj_id = BSON::ObjectId(params.delete "obj_id")
   params.delete "_method" # delete param added by sinatra
 
-  # update thb & pic
+  # Update thb & pic if sent.
   if (thb = params.delete "thb") && (thb_tmp = thb[:tempfile]) &&
     (pic = params.delete "pic") && (pic_tmp = pic[:tempfile])
 
@@ -149,6 +149,7 @@ put '/:obj_id' do
     thb_md5 = put_img(thb_tmp, opts.merge({:fs_name => "usr_thb"}))
     pic_md5 = put_img(pic_tmp, opts.merge({:fs_name => "usr_pic"}))
 
+    params.merge!({"thb_md5" => thb_md5, "pic_md5" => pic_md5})
     # thb_grid = Mongo::Grid.new(DB, 'usr_thb')
     # thb_grid.delete(obj_id)
     # thb = thb_grid.put(thb_tmp.read, :_id => obj_id, :content_type => pic[:type])
@@ -157,8 +158,8 @@ put '/:obj_id' do
   users = DB.collection("users")
   # convert numeric Strings to Fixnums
   params.each_pair {|k, v| params[k] = Integer(v) rescue v }
-  users.update({"_id" => obj_id},
-               {"thb_md5" => thb_md5, "pic_md5" => pic_md5}.merge(params))
+  users.update({"_id" => obj_id}, params)
+
   "OK"
 end
 
