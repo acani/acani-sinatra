@@ -158,7 +158,7 @@ put '/:obj_id' do
   users = DB.collection("users")
   # convert numeric Strings to Fixnums
   params.each_pair {|k, v| params[k] = Integer(v) rescue v }
-  users.update({"_id" => obj_id}, params)
+  users.update({"_id" => obj_id}, {"$set" => params})
 
   "OK"
 end
