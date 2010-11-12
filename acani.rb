@@ -68,7 +68,7 @@ get '/users/:uid/:did/:lat/:lng' do
 
   # Return users nearby (ignore with similar groups for now)
   # http://www.mongodb.org/display/DOCS/Geospatial+Indexing
-  nearby_users = users.find({USR[:location] => {"$near" => [lat, lng]}}, {:limit => 20})
+  nearby_users = users.find({USR[:location] => {"$near" => [lat, lng]}}, {:limit => 200})
 
   content_type "application/json"
   # JSON.pretty_generate(([me]+nearby_users.to_a).map { |u|
