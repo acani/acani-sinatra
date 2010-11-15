@@ -2,5 +2,4 @@
 .localized
 Thumbs.db
 
-seed/pics-thbs/picture_*
-seed/pics-thbs/thumb_*
+seed/config.rb
