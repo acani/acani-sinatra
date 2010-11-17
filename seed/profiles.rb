@@ -11,13 +11,28 @@ require script_dir + '/../constants.rb'
 require script_dir + '/config.rb'
 
 # Return a Unix timestamp within x days from now.
-def within_days(days)
-  Time.now.to_i - rand(days*86_400)
+def within_months(month_range, months_since_now=0)
+  Time.now.to_i - months_since_now*2_629_743 - rand(month_range*2_629_743)
 end
 
 # Return an array [lat, lng] of a location nearby (lat, lng).
 def nearby(lat=37.332, lng=-122.031)
   [lat+rand(40)/1000.0-0.02, lng+rand(40)/1000.0-0.02]
+end
+
+def rel_stat
+  case rand(10)
+  when 0 then ""
+  when 1 then "Single"
+  when 2 then "In a Relationship"
+  when 3 then "Engaged"
+  when 4 then "Married"
+  when 5 then "It's Complicated"
+  when 6 then "In an Open Relationship"
+  when 7 then "Widowed"
+  when 8 then "Separated"
+  when 9 then "Divorced"
+  end
 end
 
 conn = Mongo::Connection.new
@@ -228,8 +243,8 @@ EOF
 
   # Insert user's data into MongoDB users collection.
   users.insert({ # for most attributes: 0:do not show
-    USR[:pic_id] => pic_id.to_s,
     USR[:about] => about,
+    USR[:weight] => rand(45) + 100, # lbs
     USR[:devices] => [], # ids
     USR[:show_distance] => rand(2), # 0:hide, 1:show
     USR[:ethnicity] => rand(7), # See ethnicity method above
@@ -237,20 +252,23 @@ EOF
     USR[:groups] => [], # ids
     USR[:height] => rand(50) + 140, # (cm)
     USR[:fb_id] => rand(4_000),
+    USR[:phone] => Faker::PhoneNumber.phone_number, # short_phone_number
+    USR[:rel_stat] => rel_stat,
     USR[:location] => nearby,
     USR[:messages] => [], # sent/received > read/unread, sender, ts, text, etc.
     USR[:name] => Faker::Name.name[0,10].rstrip,
     USR[:online_status] => rand(4), # 1:off, 2:on, 3:busy, 4:idle
-    USR[:weight] => rand(45) + 100, # lbs
+    USR[:pic_id] => pic_id.to_s,
     USR[:headline] => photo_title,
-    USR[:last_online] => within_days(90), # (UNIX timestamp)
+    USR[:last_online] => within_months(3), # (UNIX timestamp)
     USR[:sex] => rand(3), # 1:female, 2:male
-    USR[:updated] => within_days(90), # (UNIX timestamp)
+    USR[:updated] => within_months(3), # (UNIX timestamp)
     USR[:fb_username] => Faker::Internet.user_name,
     USR[:likes] => rand(4), # 1:women, 2:men, 3:both
-    USR[:weblink] => (rand < 0.3 ? '' : 'www.') + Faker::Internet.domain_name,
+    USR[:website] => (rand < 0.3 ? '' : 'www.') + Faker::Internet.domain_name,
     USR[:block] => [], # ids
-    USR[:age] => rand(20) + 16 # (years)
+    USR[:birthday] => Time.at(within_months(180, 216)).strftime("%Y-%m-%d"),
+    USR[:show_birthday] => rand(3) # 0:hide, 1:show_date, 2:show_age
   })
 end
 
