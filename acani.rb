@@ -98,11 +98,15 @@ def pic_fs_name
   end
 end
 
-# get picture of specific user
-get '/:obj_id/picture' do
+# # Get a specific object's picture.
+# get '/:obj_id/picture' do
+# end
+
+# Get a specific picture.
+get '/pictures/:pic_id' do
   grid = Mongo::Grid.new(DB, pic_fs_name)
   begin
-    image = grid.get(BSON::ObjectId(params[:obj_id]))
+    image = grid.get(BSON::ObjectId(params[:pic_id]))
     content_type image.content_type
     image.read
   rescue
