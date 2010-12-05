@@ -1,0 +1,22 @@
+# http://en.wikipedia.org/wiki/Outline_of_sports
+  sports:
+    - hockey (field)
+    - hockey (ice)
+    - hockey (roller)
+    - soccer
+    - baseball
+    - tennis
+    - golf
+    - basketball
+    - running
+    - extreme sports:
+      - skateboarding
+      - skiing
+      - bmx
+      - mountain biking
+      - motorcycle
+      - snowboarding
+  board games:
+    - chess
+    - checkers
+

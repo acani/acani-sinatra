@@ -51,12 +51,39 @@ db = conn.db("acani")
 #   # ...
 # }
 
-# # TODO: add more groups and nest subgroups within supergroups
-# groups = db.collection("groups")
-# groups.remove # start fresh in case not empty
-# require './groups' # groups array
-# groups.insert(group_array)
-# puts groups.find
+# TODO: add more groups and nest subgroups within supergroups
+groups = db.collection("groups")
+groups.remove # start fresh in case not empty
+
+require './groups' # groups array
+require 'pp'
+
+insert_enumerable = lambda {|obj, collection|
+   # obj = {:value => obj} if !obj.kind_of? Enumerable
+   if(obj.kind_of? Array or obj.kind_of? Hash)
+      obj.each do |k, v|
+        v = (v.nil?) ? k : v
+        insert_enumerable.call({:value => v, :parent => obj}, collection)
+      end
+   else
+      obj = {:value => obj}
+   end
+   # collection.insert({name => obj[:value], :parent => obj[:parent]})
+   pp({name => obj[:value], :parent => obj[:parent]})
+}
+
+YAML.load_file('groups.yml').each do |k, v|
+   if(v.kind_of? Array)
+      v.each do |name|
+        groups.insert({:name => name, :parent => k})
+      end
+      groups.insert({:name => k})
+   else
+     groups.insert({:name => v})
+   end
+end
+
+puts groups.find
 
 
 # # refs:
