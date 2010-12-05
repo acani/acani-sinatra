@@ -54,35 +54,7 @@ db = conn.db("acani")
 # # TODO: add more groups and nest subgroups within supergroups
 # groups = db.collection("groups")
 # groups.remove # start fresh in case not empty
-# group_array = [
-#   { :name => "love" },
-#   { :name => "skateboard" },
-#   { :name => "ice hockey" },
-#   { :name => "roller hockey" },
-#   { :name => "field hockey" },
-#   { :name => "chess" },
-#   { :name => "models" },
-#   { :name => "technology" },
-#   { :name => "travel" },
-#   { :name => "scuba diving" },
-#   { :name => "health" },
-#   { :name => "skiing" },
-#   { :name => "snowboarding" },
-#   { :name => "fitness" },
-#   { :name => "spirituality" },
-#   { :name => "golf" },
-#   { :name => "religion" },
-#   { :name => "baseball" },
-#   { :name => "soccer" },
-#   { :name => "football" },
-#   { :name => "tennis" },
-#   { :name => "wealth" },
-#   { :name => "software" },
-#   { :name => "facebook" },
-#   { :name => "twitter" },
-#   { :name => "growth" },
-#   { :name => "give back" },
-# ]
+# require './groups' # groups array
 # groups.insert(group_array)
 # puts groups.find
 
