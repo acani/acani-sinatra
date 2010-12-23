@@ -52,38 +52,56 @@ db = conn.db("acani")
 # }
 
 # TODO: add more groups and nest subgroups within supergroups
-groups = db.collection("groups")
-groups.remove # start fresh in case not empty
-
-require './groups' # groups array
-require 'pp'
-
-insert_enumerable = lambda {|obj, collection|
-   # obj = {:value => obj} if !obj.kind_of? Enumerable
-   if(obj.kind_of? Array or obj.kind_of? Hash)
-      obj.each do |k, v|
-        v = (v.nil?) ? k : v
-        insert_enumerable.call({:value => v, :parent => obj}, collection)
-      end
-   else
-      obj = {:value => obj}
-   end
-   # collection.insert({name => obj[:value], :parent => obj[:parent]})
-   pp({name => obj[:value], :parent => obj[:parent]})
-}
-
-YAML.load_file('groups.yml').each do |k, v|
-   if(v.kind_of? Array)
-      v.each do |name|
-        groups.insert({:name => name, :parent => k})
-      end
-      groups.insert({:name => k})
-   else
-     groups.insert({:name => v})
-   end
-end
-
-puts groups.find
+# groups = db.collection("groups")
+#
+# require './groups' # groups array
+# require 'pp'
+#
+# {"sports"=>
+#   ["hockey (field)",
+#    "hockey (ice)",
+#    "hockey (roller)",
+#    "soccer",
+#    "baseball",
+#    "tennis",
+#    "golf",
+#    "basketball",
+#    "running",
+#    {"extreme sports"=>
+#      ["skateboarding",
+#       "skiing",
+#       "bmx",
+#       "mountain biking",
+#       "motorcycle",
+#       "snowboarding"]}],
+#  "board games"=>["chess", "checkers"]}
+#
+# insert_enumerable = lambda {|obj, collection|
+#    # obj = {:value => obj} if !obj.kind_of? Enumerable
+#    if(obj.kind_of? Array or obj.kind_of? Hash)
+#       obj.each do |k, v|
+#         v = (v.nil?) ? k : v
+#         insert_enumerable.call({:value => v, :parent => obj}, collection)
+#       end
+#    else
+#       obj = {:value => obj}
+#    end
+#    # collection.insert({name => obj[:value], :parent => obj[:parent]})
+#    pp({name => obj[:value], :parent => obj[:parent]})
+# }
+#
+# YAML.load_file('groups.yml').each do |k, v|
+#    if(v.kind_of? Array)
+#       v.each do |name|
+#         groups.insert({:name => name, :parent => k})
+#       end
+#       groups.insert({:name => k})
+#    else
+#      groups.insert({:name => v})
+#    end
+# end
+#
+# puts groups.find
 
 
 # # refs:
@@ -145,7 +163,7 @@ flickr_photo_ids = [
   "3936813347",
   "2369151434",
   "3936777541",
-  "2368320493", #10
+  "3942971773", #10
   "5100437401",
   "3937523554",
   "3679345595",
@@ -158,7 +176,7 @@ flickr_photo_ids = [
   "4733974817", #20
   "4476799140",
   "4476798352",
-  "3936827307",
+  "3942969773",
   "3555474750",
   "3377864339", #25
   "3156504080",
@@ -191,6 +209,14 @@ link_text = <<EOF
 EOF
 
 # Create users for photos and insert both into GridFS.
+# 1. Find open-source portraits here:
+# http://www.flickr.com/search/?q=people+OR+person+OR+boy+OR+girl+OR+man+OR+woman+OR+persons+OR+friends+OR+face+OR+faces+OR+portrait+OR+headshot+OR+shot&l=commderiv&ss=0&ct=0&mt=all&w=all&adv=1
+# 2. Cut to 3:2 ratio and paste to new canvas.
+# 3. Save for web, select Preset: JPEG High, then Maximum. Image sizes:
+#    640x960px & 320x480px (bicubic sharper for reduction).
+# 4. Make thumbnails with RMagick script (resize-pics.rb).
+# 5. Re-seed database (profiles.rb).
+# 6. Upload & send a message to the Flickr user to inform them of use.
 1.upto(28) do |i|
   print "#{i} "; $stdout.flush # display before newline
 
@@ -201,7 +227,8 @@ EOF
   meta = JSON.parse(response[14..-2]) # strip JSONP padding
 
   unless meta["stat"] == "ok"
-    raise "photo_id: #{photo_id}: error: #{meta["code"]} - #{meta["message"]}."
+    puts
+    puts "photo_id: #{photo_id}: error: #{meta["code"]} - #{meta["message"]}."
     next
   end
 
@@ -212,9 +239,9 @@ EOF
   photo_license = case photo["license"].to_i
     when 4 then "Attribution"
     when 5 then "Attribution-ShareAlike"
-    else raise photo_id + ': license: ' + photo["license"]
+    else puts '', photo_id + ': license: ' + photo["license"]
   end
-  photo_license = "Creative Commons — #{photo_license} 2.0 Generic"
+  photo_license = "Creative Commons - #{photo_license} 2.0 Generic"
   about = "The overlaid textual data about the person in this photo and its thumbnail was fabricated and, thus, is very unlikely to be true. This photo and its thumbnail are cropped and/or resized derivatives of \"#{photo_title}\" by #{owner["realname"]} (#{owner["username"]}) on Flickr. License: #{photo_license}. Accessed 13 Nov. 2010. #{photo_url}"
 
   attr_doc += <<EOF
@@ -267,7 +294,7 @@ EOF
     USR[:website] => (rand < 0.3 ? '' : 'www.') + Faker::Internet.domain_name,
     USR[:block] => [], # ids
     USR[:birthday] => Time.at(within_months(180, 216)).strftime("%Y-%m-%d"),
-    USR[:show_birthday] => rand(3) # 0:hide, 1:show_date, 2:show_age
+    USR[:show_birthday] => rand(3) # 0:hide, 1:show_age, 2:show_date
   })
 end
 
