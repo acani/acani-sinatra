@@ -51,58 +51,25 @@ db = conn.db("acani")
 #   # ...
 # }
 
-# TODO: add more groups and nest subgroups within supergroups
-# groups = db.collection("groups")
-#
-# require './groups' # groups array
-# require 'pp'
-#
-# {"sports"=>
-#   ["hockey (field)",
-#    "hockey (ice)",
-#    "hockey (roller)",
-#    "soccer",
-#    "baseball",
-#    "tennis",
-#    "golf",
-#    "basketball",
-#    "running",
-#    {"extreme sports"=>
-#      ["skateboarding",
-#       "skiing",
-#       "bmx",
-#       "mountain biking",
-#       "motorcycle",
-#       "snowboarding"]}],
-#  "board games"=>["chess", "checkers"]}
-#
-# insert_enumerable = lambda {|obj, collection|
-#    # obj = {:value => obj} if !obj.kind_of? Enumerable
-#    if(obj.kind_of? Array or obj.kind_of? Hash)
-#       obj.each do |k, v|
-#         v = (v.nil?) ? k : v
-#         insert_enumerable.call({:value => v, :parent => obj}, collection)
-#       end
-#    else
-#       obj = {:value => obj}
-#    end
-#    # collection.insert({name => obj[:value], :parent => obj[:parent]})
-#    pp({name => obj[:value], :parent => obj[:parent]})
-# }
-#
-# YAML.load_file('groups.yml').each do |k, v|
-#    if(v.kind_of? Array)
-#       v.each do |name|
-#         groups.insert({:name => name, :parent => k})
-#       end
-#       groups.insert({:name => k})
-#    else
-#      groups.insert({:name => v})
-#    end
-# end
-#
-# puts groups.find
-
+# TODO: add more interests.
+# Think about how to best organize interests in MongoDB.
+interests = db.collection("interests")
+@@interest_id = 0
+require 'yaml'
+interests_hash = YAML::load_file('interests.yml')
+def interests.insert_interest(interest, parent=nil)
+  if interest.is_a? String
+    insert({:_id => @@interest_id.to_s(36),
+            :name => interest, :parent => parent})
+    @@interest_id += 1
+  else # it's a hash
+    interest = interest.first # get key-value pair in hash
+    interest[1].each do |i|
+      self.insert_interest(i, interest[0])
+    end
+  end
+end
+interests.insert_interest interests_hash
 
 # # refs:
 # # http://www.flickr.com/services/api/
@@ -275,7 +242,7 @@ EOF
     USR[:show_distance] => rand(2), # 0:hide, 1:show
     USR[:ethnicity] => rand(7), # See ethnicity method above
     USR[:favorites] => [], # ids
-    USR[:groups] => [], # ids
+    USR[:interests] => [], # ids
     USR[:height] => rand(50) + 140, # (cm)
     USR[:fb_id] => rand(4_000),
     USR[:phone] => Faker::PhoneNumber.phone_number, # short_phone_number
@@ -299,7 +266,7 @@ EOF
 end
 
 users.create_index([[USR[:location], "2d"]])
-# users.create_index([[:loc, "2d"], ['groups.id', 1]])
+# users.create_index([[:loc, "2d"], ['interests.id', 1]])
 
 puts
 puts doc = attr_doc + link_text
