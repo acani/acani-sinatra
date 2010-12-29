@@ -1,10 +1,10 @@
 # require 'ruby-debug'
 require 'rubygems' # for ruby-1.8
-require 'json/pure'
+require 'json'
 require 'sinatra'
 require 'mongo'
 require 'haml'
-require 'constants.rb'
+require './constants.rb'
 
 # Configure
 configure :development do
@@ -19,32 +19,41 @@ configure :production do
   DB = conn.db(uri.path.gsub(/^\//, ''))
 end
 
-set :haml, {:format => :html5} # default Haml format is :xhtml
+set :haml, {:format => :html5} # default Haml format was :xhtml. Is it still?
 
-# get all users linked with the specified device
-get '/users/:device_id' do |d|
-  "welcome!"
+# # Get all users linked with the specified device.
+# # Currently, a user may only connect via FBConnect, so this is unnecessary.
+# get '/users/:device_id' do |d|
+#   "welcome!"
+# end
+
+# Return a JSON array of all interests.
+get '/interests' do
+  interests = DB.collection("interests")
+  content_type "application/json"
+  JSON.pretty_generate(interests.find.to_a)
 end
 
-# create a new user (default) and respond with user_id & users nearby
-post '/users/:device_id/:latitude/:longitude' do |d, lat, lng|
+# # Create a new user (default) and respond with user_id & users nearby.
+# post '/users/:device_id/:latitude/:longitude' do |d, lat, lng|
+#
+#   # users.insert({'devices.id' => {'$push' => d}})
+#   #
+#   # # create new user
+#   # user = {
+#   #   :devices => d
+#   # }
+#   # users.insert()
+#
+#   "device_id = #{d};
+#    latitude = #{lat};
+#    longitude = #{lng}.\n"
+# end
 
-  # users.insert({'devices.id' => {'$push' => d}})
-  #
-  # # create new user
-  # user = {
-  #   :devices => d
-  # }
-  # users.insert()
-
-  "device_id = #{d};
-   latitude = #{lat};
-   longitude = #{lng}.\n"
-end
-
-# get all users nearby; update last_online
-get '/users/:uid/:did/:lat/:lng' do
+# Get all users nearby with specified interest. Update last_online.
+get '/interests/:iid/users/:uid/:did/:lat/:lng' do
   users = DB.collection("users")
+  interest_id = params[:iid]
   lat = params[:lat].to_f
   lng = params[:lng].to_f
   now = Time.now # fix time
@@ -66,9 +75,12 @@ get '/users/:uid/:did/:lat/:lng' do
   # "created" : { "d" : "2010-03-29", "t" : "20:15:34" }
   # "created" : "12343545234"
 
-  # Return users nearby (ignore with similar groups for now)
+  # Return users nearby with similar interest.
   # http://www.mongodb.org/display/DOCS/Geospatial+Indexing
-  nearby_users = users.find({USR[:location] => {"$near" => [lat, lng]}}, {:limit => 200})
+  nearby_users = interest_id == "0" ?
+    users.find({USR[:location] => {"$near" => [lat, lng]}}, {:limit => 200}) :
+    users.find({USR[:location] => {"$near" => [lat, lng]},
+                USR[:interests] => interest_id}, {:limit => 200})
 
   content_type "application/json"
   # JSON.pretty_generate(([me]+nearby_users.to_a).map { |u|
@@ -77,6 +89,20 @@ get '/users/:uid/:did/:lat/:lng' do
   JSON.pretty_generate(nearby_users.to_a)
   # Example with group
   # db.places.find( { location : { $near : [50,50] }, group : 'baseball' } );
+end
+
+# Handle a user's request to add a new interest.
+post '/interests/:iid' do
+  DB.collection("users").update({:_id => BSON::ObjectId(params[:uid])},
+      {:$addToSet => {USR[:interests] => params[:iid]}}) # add unless exists
+  "OK"
+end
+
+# Handle a user's request to remove a new interest.
+delete '/interests/:iid' do
+  DB.collection("users").update({:_id => BSON::ObjectId(params[:uid])},
+      {:$pull => {USR[:interests] => params[:iid]}})
+  "OK"
 end
 
 # hard-coded json for testing

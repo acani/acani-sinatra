@@ -3,13 +3,21 @@
 
 acani:
   - sports:
-    - hockey (field)
-    - hockey (ice)
-    - hockey (roller)
+    - hockey
+      - field hockey
+      - ice hockey
+      - roller hockey
     - soccer
-    - baseball
+    - bat & ball
+      - baseball
+      - softball
+      - criquet
     - football
-    - tennis
+    - raquet sports
+      - tennis
+      - squash
+      - table tennis
+      - ping pong
     - scuba diving
     - golf
     - basketball
@@ -58,7 +66,19 @@ acani:
             - alternative
             - classic
           - hip-hop & R&B
-  - love
+  - love:
+    - sex:
+      - swinging
+      - couples
+      - singles
+    - relationship:
+      - dating
+      - marriage
+      - polyamory
+    - friends
+    - babies
+      - surrogacy
+      - sperm trade
   - health:
     - nutrition
     - exercise
@@ -72,3 +92,5 @@ acani:
     - twitter
     - foursquare
   - wealth
+  - misc
+    - moms

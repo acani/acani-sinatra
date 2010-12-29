@@ -57,15 +57,18 @@ interests = db.collection("interests")
 @@interest_id = 0
 require 'yaml'
 interests_hash = YAML::load_file('interests.yml')
-def interests.insert_interest(interest, parent=nil)
-  if interest.is_a? String
-    insert({:_id => @@interest_id.to_s(36),
-            :name => interest, :parent => parent})
+def interests.insert_interest(interest_object, parent_id=nil)
+  interest_id = @@interest_id.to_s(36)
+  if interest_object.is_a? String # base case
+    insert({:_id => interest_id, :n => interest_object, :p => parent_id})
     @@interest_id += 1
   else # it's a hash
-    interest = interest.first # get key-value pair in hash
-    interest[1].each do |i|
-      self.insert_interest(i, interest[0])
+    interest_k_v = interest_object.first # get the only key-value pair in hash
+    interest_name = interest_k_v[0] # key is the name
+    insert({:_id => interest_id, :n => interest_name, :p => parent_id})
+    @@interest_id += 1
+    interest_k_v[1].each do |i| # value is an array of children
+      insert_interest(i, interest_id)
     end
   end
 end
@@ -265,8 +268,8 @@ EOF
   })
 end
 
-users.create_index([[USR[:location], "2d"]])
-# users.create_index([[:loc, "2d"], ['interests.id', 1]])
+# users.create_index([[USR[:location], "2d"]]) # w/o interests
+users.create_index([[USR[:location], "2d"], [USR[:interests], 1]])
 
 puts
 puts doc = attr_doc + link_text
