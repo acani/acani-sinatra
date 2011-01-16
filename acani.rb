@@ -6,7 +6,6 @@ require 'mongo'
 require 'haml'
 require './constants.rb'
 
-# Configure
 configure :development do
   require 'ruby-debug'
   DB = Mongo::Connection.new.db("acani")
