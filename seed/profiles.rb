@@ -1,14 +1,19 @@
-require 'rubygems' # for ruby-1.8
 require 'net/http'
 require 'json'
 require 'mongo'
 require 'ffaker'
 
-script_dir = File.dirname(__FILE__)
-pic_dir = script_dir + '/pics-thbs'
-git_dir = "https://github.com/acani/acani-sinatra/raw/master/seed/pics-thbs"
-require script_dir + '/../constants.rb'
-require script_dir + '/config.rb'
+DIR = File.dirname(__FILE__)
+ABS = File.expand_path(DIR)
+$LOAD_PATH << File.expand_path(File.join(DIR, ".."))
+require 'constants'
+require File.join("seed", "config")
+
+interests_yml = File.join(ABS, "interests.yml")
+pic_dir       = File.join(ABS, "pics-thbs")
+git_dir       = "https://github.com/acani/acani-sinatra/raw/master/seed/pics-thbs"
+
+no_internet_connection = false # assume we're connected
 
 # Return a Unix timestamp within x days from now.
 def within_months(month_range, months_since_now=0)
@@ -56,10 +61,10 @@ db = conn.db("acani")
 interests = db.collection("interests")
 @@interest_id = 0
 require 'yaml'
-interests_hash = YAML::load_file('interests.yml')
+interests_hash = YAML::load_file(interests_yml)
 def interests.insert_interest(interest_object, parent_id=nil)
   interest_id = @@interest_id.to_s(36)
-  if interest_object.is_a? String # base case
+  if interest_object.instance_of? String # base case
     insert({:_id => interest_id, :n => interest_object, :p => parent_id})
     @@interest_id += 1
   else # it's a hash
@@ -190,40 +195,46 @@ EOF
 1.upto(28) do |i|
   print "#{i} "; $stdout.flush # display before newline
 
-  # Add photo info to attribution doc.
-  photo_id = flickr_photo_ids[i-1]
-  uri = "#{flickr}/services/rest/?method=flickr.photos.getInfo&photo_id=#{photo_id}&format=json&api_key=#{API_KEY}"
-  response = Net::HTTP.get_response(URI.parse(uri)).body.to_s
-  meta = JSON.parse(response[14..-2]) # strip JSONP padding
+  unless no_internet_connection
+    begin # update photo meta info from flickr
+      # Add photo info to attribution doc.
+      photo_id = flickr_photo_ids[i-1]
+      uri = "#{flickr}/services/rest/?method=flickr.photos.getInfo&photo_id=#{photo_id}&format=json&api_key=#{FLICKR_API_KEY}"
+      response = Net::HTTP.get_response(URI.parse(uri)).body.to_s
+      meta = JSON.parse(response[14..-2]) # strip JSONP padding
 
-  unless meta["stat"] == "ok"
-    puts
-    puts "photo_id: #{photo_id}: error: #{meta["code"]} - #{meta["message"]}."
-    next
-  end
+      unless meta["stat"] == "ok"
+        puts
+        puts "photo_id: #{photo_id}: error: #{meta["code"]} - #{meta["message"]}."
+        next
+      end
 
-  photo = meta["photo"];
-  owner = photo["owner"];
-  photo_title = photo["title"]["_content"]
-  photo_url = photo["urls"]["url"][0]["_content"]
-  photo_license = case photo["license"].to_i
-    when 4 then "Attribution"
-    when 5 then "Attribution-ShareAlike"
-    else puts '', photo_id + ': license: ' + photo["license"]
-  end
-  photo_license = "Creative Commons - #{photo_license} 2.0 Generic"
-  about = "The overlaid textual data about the person in this photo and its thumbnail was fabricated and, thus, is very unlikely to be true. This photo and its thumbnail are cropped and/or resized derivatives of \"#{photo_title}\" by #{owner["realname"]} (#{owner["username"]}) on Flickr. License: #{photo_license}. Accessed 13 Nov. 2010. #{photo_url}"
+      photo = meta["photo"];
+      owner = photo["owner"];
+      photo_title = photo["title"]["_content"]
+      photo_url = photo["urls"]["url"][0]["_content"]
+      photo_license = case photo["license"].to_i
+        when 4 then "Attribution"
+        when 5 then "Attribution-ShareAlike"
+        else puts '', photo_id + ': license: ' + photo["license"]
+      end
+      photo_license = "Creative Commons - #{photo_license} 2.0 Generic"
+      about = "The overlaid textual data about the person in this photo and its thumbnail was fabricated and, thus, is very unlikely to be true. This photo and its thumbnail are cropped and/or resized derivatives of \"#{photo_title}\" by #{owner["realname"]} (#{owner["username"]}) on Flickr. License: #{photo_license}. Accessed 13 Nov. 2010. #{photo_url}"
 
-  attr_doc += <<EOF
+      attr_doc += <<EOF
   #{i}. ![#{photo_title}][#{i}t] "[#{photo_title}][#{i}p]." Photograph by [#{owner["realname"]} (#{owner["username"]}) on Flickr][#{i}o]. License: [#{photo_license}][#{photo["license"] == "4" ? "by" : "by-sa"}].
 
 EOF
 
-  link_text += <<EOF
-[#{i}t]: #{git_dir}/thumb_#{i}.jpg
-[#{i}p]: #{photo_url}
-[#{i}o]: #{flickr}/people/#{owner["nsid"]}
+      link_text += <<EOF
+  [#{i}t]: #{git_dir}/thumb_#{i}.jpg
+  [#{i}p]: #{photo_url}
+  [#{i}o]: #{flickr}/people/#{owner["nsid"]}
 EOF
+    rescue SocketError
+      no_internet_connection = true
+    end
+  end
 
   # Load user's photos from their files.
   pi2 = File.new("#{pic_dir}/picture_#{i}@2.jpg")
@@ -239,7 +250,7 @@ EOF
 
   # Insert user's data into MongoDB users collection.
   users.insert({ # for most attributes: 0:do not show
-    USR[:about] => about,
+    USR[:about] => about || Faker::Lorem.sentence,
     USR[:weight] => rand(45) + 100, # lbs
     USR[:devices] => [], # ids
     USR[:show_distance] => rand(2), # 0:hide, 1:show
@@ -255,7 +266,7 @@ EOF
     USR[:name] => Faker::Name.name[0,10].rstrip,
     USR[:online_status] => rand(4), # 1:off, 2:on, 3:busy, 4:idle
     USR[:pic_id] => pic_id.to_s,
-    USR[:headline] => photo_title,
+    USR[:headline] => photo_title || Faker::Name.name,
     USR[:last_online] => within_months(3), # (UNIX timestamp)
     USR[:sex] => rand(3), # 1:female, 2:male
     USR[:updated] => within_months(3), # (UNIX timestamp)
@@ -272,9 +283,13 @@ end
 users.create_index([[USR[:location], "2d"], [USR[:interests], 1]])
 
 puts
-puts doc = attr_doc + link_text
-File.open(pic_dir+'/README.md', 'w') { |f| f.write(doc) }
 
+unless no_internet_connection
+  puts doc = attr_doc + link_text
+  File.open(pic_dir+'/README.md', 'w') { |f| f.write(doc) }
+else
+  puts "Didn't update photo metadata because couldn't connect to Flickr"
+end
 
 # m = Mongo::Connection.new # (optional host/port args)
 # m.database_names.each { |name| puts name }
