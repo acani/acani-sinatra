@@ -1,13 +1,29 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    archive-tar-minitar (0.5.2)
     bson (1.0.7)
     bson_ext (1.0.7)
+    columnize (0.3.2)
     haml (3.0.18)
-    json_pure (1.4.6)
+    json (1.5.1)
+    linecache19 (0.5.11)
+      ruby_core_source (>= 0.1.4)
     mongo (1.0.8)
       bson (>= 1.0.5)
     rack (1.2.1)
+    ruby-debug-base19 (0.11.24)
+      columnize (>= 0.3.1)
+      linecache19 (>= 0.5.11)
+      ruby_core_source (>= 0.1.4)
+    ruby-debug19 (0.11.6)
+      columnize (>= 0.3.1)
+      linecache19 (>= 0.5.11)
+      ruby-debug-base19 (>= 0.11.19)
+    ruby_core_source (0.1.4)
+      archive-tar-minitar (>= 0.5.2)
+    shotgun (0.9)
+      rack (>= 1.0)
     sinatra (1.0)
       rack (>= 1.0)
 
@@ -17,6 +33,8 @@ PLATFORMS
 DEPENDENCIES
   bson_ext
   haml
-  json_pure
+  json
   mongo
+  ruby-debug19
+  shotgun
   sinatra
