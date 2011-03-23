@@ -249,7 +249,7 @@ EOF
            usr_thb_grid.put(thb, :content_type => "image/jpeg", :_id => pic_id)
 
   # Insert user's data into MongoDB users collection.
-  users.insert({ # for most attributes: 0:do not show
+  users.insert({ # for most attributes: nil:do not show
     USR[:about] => about || Faker::Lorem.sentence,
     USR[:weight] => rand(45) + 100, # lbs
     USR[:devices] => [], # ids
@@ -264,14 +264,14 @@ EOF
     USR[:location] => nearby,
     USR[:messages] => [], # sent/received > read/unread, sender, ts, text, etc.
     USR[:name] => Faker::Name.name[0,10].rstrip,
-    USR[:online_status] => rand(4), # 1:off, 2:on, 3:busy, 4:idle
+    USR[:online_status] => rand(4), # 0:off, 1:on, 2:busy, 3:idle
     USR[:pic_id] => pic_id.to_s,
     USR[:headline] => photo_title || Faker::Name.name,
     USR[:last_online] => within_months(3), # (UNIX timestamp)
-    USR[:sex] => rand(3), # 1:female, 2:male
+    USR[:sex] => rand(2), # 0:female, 1:male
     USR[:updated] => within_months(3), # (UNIX timestamp)
     USR[:fb_username] => Faker::Internet.user_name,
-    USR[:likes] => rand(4), # 1:women, 2:men, 3:both
+    USR[:likes] => rand(3), # 0:women, 1:men, 2:both
     USR[:website] => (rand < 0.3 ? '' : 'www.') + Faker::Internet.domain_name,
     USR[:block] => [], # ids
     USR[:birthday] => Time.at(within_months(180, 216)).strftime("%Y-%m-%d"),
