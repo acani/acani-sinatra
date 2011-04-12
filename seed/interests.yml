@@ -1,9 +1,64 @@
-# http://en.wikipedia.org/wiki/Outline_of_sports
-# http://en.wikipedia.org/wiki/Fields_of_engineering
+# acani Interests in [YAML format][1]
+# ===================================
+#
+#
+# Summary
+# -------
+#
+# This file contains a taxonomy of interests, arranged in hierarchecal
+# structure, that acani users can join.
+#
+# When a user joins an interest, she also becomes a member of all ancestors of
+# that interest. So, if Sue joins roller hockey, then she also becomes a member
+# of hockey and a member of sports.
+#
+# A user can search or browse other users by interest.
+#
+# ## Search
+#
+# A search bar allows the filtering of all interests in real time.
+#
+# ## Browse
+#
+# The hierarchecal structure of the interests facilitates browsing.
+#
+# A user selects an interest to see either its children (sub-interests) or the
+# users who've joined that interest.
+#
+#
+# Contributing
+# ------------
+#
+# We can easily parse this file with Ruby (programming language) into a data
+# structure (a nested hash) that the acani software can understand.
+#
+# The content of this file is more important than it's format, which we can
+# change later, but if you're comfortable editing this file in this format and
+# in a [text editor][2], please do so.
+#
+# Basically, there's three formatting rules:
+#
+# 1. Put a hyphen & space before each interest, except for acani (the root).
+# 2. If an interest has children, then put a colon at the end, otherwise don't.
+# 3. Indent each child interest exactly two spaces relative to it's parent.
+#
+# Lines like this one that start with # are called comments and are ignored.
+#
+#
+# Resources
+# ---------
+#
+# * http://en.wikipedia.org/wiki/Outline_of_sports
+# * http://en.wikipedia.org/wiki/Fields_of_engineering
+#
+#
+#  [1]: http://en.wikipedia.org/wiki/YAML
+#  [2]: http://j.mp/mac-text-editors
+#
 
 acani:
   - programming
-  # - modeling
+  - modeling
 
 # acani:
 #   - sports:
@@ -28,8 +83,8 @@ acani:
 #     - running
 #     - extreme sports:
 #       - skateboarding:
-#         - vert
-#         - street
+#         - vert skateboarding
+#         - street skateboarding
 #       - skiing
 #       - bmx
 #       - mountain biking
@@ -53,11 +108,12 @@ acani:
 #       - biology:
 #         - marine biology
 #       - computer science:
-#         - software
-#         - networking
+#         - computer software
+#         - computer hardware
+#         - computer networking
 #       - physics:
-#         - quantum
-#         - classical
+#         - quantum physics
+#         - classical physics
 #     - entertainment:
 #       - modeling
 #       - acting
@@ -67,8 +123,8 @@ acani:
 #         - guitar
 #         - genres:
 #           - rock:
-#             - alternative
-#             - classic
+#             - alternative rock
+#             - classic rock
 #           - hip-hop & R&B
 #   - love:
 #     - sex:
@@ -80,7 +136,7 @@ acani:
 #       - marriage
 #       - polyamory
 #     - friends
-#     - babies
+#     - babies:
 #       - surrogacy
 #       - sperm trade
 #   - health:
@@ -96,5 +152,5 @@ acani:
 #     - twitter
 #     - foursquare
 #   - wealth
-#   - misc
+#   - misc:
 #     - moms
