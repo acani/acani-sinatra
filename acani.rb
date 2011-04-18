@@ -1,10 +1,10 @@
-# require 'ruby-debug'
-require 'rubygems' # for ruby-1.8
-require 'json'
 require 'sinatra'
+require 'json'
 require 'mongo'
-require 'haml'
+# require 'haml'
 require './constants.rb'
+
+Dir["./models/*.rb"].each {|f| require f} # require models
 
 configure :development do
   require 'ruby-debug'
@@ -21,7 +21,7 @@ end
 set :haml, {:format => :html5} # default Haml format was :xhtml. Is it still?
 
 # # Get all users linked with the specified device.
-# # Currently, a user may only connect via FBConnect, so this is unnecessary.
+# # Currently, a user may only connect via FBConnect, so this is not ready.
 # get '/users/:device_id' do |d|
 #   "welcome!"
 # end
@@ -33,20 +33,18 @@ get '/interests' do
   JSON.pretty_generate(interests.find.to_a)
 end
 
-# # Create a new user (default) and respond with user_id & users nearby.
+# 1. User signs in. Respond with their info if found.
+get "/users/:device_id" do |device_id|
+  user = User.find_by_device_id(device_id)
+
+  # If found, send device the updated_date so it knows user info is up to date.
+  # Else, send 0 to let the device know that user doesn't yet exist.
+  user ? user.updated_date : 0
+end
+
+# # 2. Create a new user (default) and respond with user_id & users nearby.
 # post '/users/:device_id/:latitude/:longitude' do |d, lat, lng|
-#
-#   # users.insert({'devices.id' => {'$push' => d}})
-#   #
-#   # # create new user
-#   # user = {
-#   #   :devices => d
-#   # }
-#   # users.insert()
-#
-#   "device_id = #{d};
-#    latitude = #{lat};
-#    longitude = #{lng}.\n"
+#   
 # end
 
 # Get all users nearby with specified interest. Update last_online.
