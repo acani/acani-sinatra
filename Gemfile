@@ -7,9 +7,9 @@ gem "mongo", "1.3.0"
 gem "bson_ext", "1.3.0" # speeds up mongo
 # gem "haml"
 
-# group :development do
-#   gem "shotgun", "0.9"
-# end
+group :development do
+  gem "shotgun", "0.9"
+end
 
 group :development, :cucumber, :test do
   gem "ruby-debug19", "0.11.6"

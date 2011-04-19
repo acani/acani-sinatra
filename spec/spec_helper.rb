@@ -12,8 +12,8 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     conn = Mongo::Connection.new
-    conn.drop_database("acani")
-    DB = conn.db("acani")
+    conn.drop_database("acani_test")
+    DB = conn.db("acani_test")
   end
 
   # config.after(:each) do

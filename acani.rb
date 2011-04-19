@@ -35,11 +35,15 @@ end
 
 # 1. User signs in. Respond with their info if found.
 get "/users/:device_id" do |device_id|
-  user = User.find_by_device_id(device_id)
+  content_type "application/json"
+  # users = DB.collection("users")
+  # users.insert({device_id: "123", updated_date: "2011-09-21"})
 
+  user = User.find_by_device_id(device_id)
+  # sleep 2 # mock a slow connection
   # If found, send device the updated_date so it knows user info is up to date.
   # Else, send 0 to let the device know that user doesn't yet exist.
-  user ? user.updated_date : 0
+  user.nil? ? "0" : "\"#{user.updated_date}\""
 end
 
 # # 2. Create a new user (default) and respond with user_id & users nearby.
