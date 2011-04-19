@@ -269,7 +269,7 @@ EOF
     USR[:headline] => photo_title || Faker::Name.name,
     USR[:last_online] => within_months(3), # (UNIX timestamp)
     USR[:sex] => rand(2), # 0:female, 1:male
-    USR[:updated] => within_months(3), # (UNIX timestamp)
+    USR[:updated_date] => within_months(3), # (UNIX timestamp)
     USR[:fb_username] => Faker::Internet.user_name,
     USR[:likes] => rand(3), # 0:women, 1:men, 2:both
     USR[:website] => (rand < 0.3 ? '' : 'www.') + Faker::Internet.domain_name,
@@ -310,7 +310,7 @@ end
 #   facebook = db.LinkProperty()
 #   show_dist = BooleanProperty(default=True)
 #   created = db.DateTimeProperty(auto_now_add=True)
-#   updated = db.DateTimeProperty(auto_now_add=True)
+#   updated_date = db.DateTimeProperty(auto_now_add=True)
 #   last_online = db.DateTimeProperty(auto_now_add=True)
 #
 # class Person(User):

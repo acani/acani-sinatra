@@ -18,6 +18,7 @@ configure :production do
   DB = conn.db(uri.path.gsub(/^\//, ''))
 end
 
+USERS = DB.collection("users")
 set :haml, {:format => :html5} # default Haml format was :xhtml. Is it still?
 
 # # Get all users linked with the specified device.
@@ -36,8 +37,7 @@ end
 # 1. User signs in. Respond with their info if found.
 get "/users/:device_id" do |device_id|
   content_type "application/json"
-  # users = DB.collection("users")
-  # users.insert({device_id: "123", updated_date: "2011-09-21"})
+  # USERS.insert({device_id: "123", updated_date: "2011-09-21"})
 
   user = User.find_by_device_id(device_id)
   # sleep 2 # mock a slow connection
@@ -52,57 +52,62 @@ end
 # end
 
 # Get all users nearby with specified interest. Update last_online.
-get '/interests/:iid/users/:uid/:did/:lat/:lng' do
-  users = DB.collection("users")
-  interest_id = params[:iid]
-  lat = params[:lat].to_f
-  lng = params[:lng].to_f
-  now = Time.now # fix time
-  updates = {USR[:location] => [lat, lng], USR[:last_online] => now,
-      USR[:updated] => now}
+get '/interests/:interest_id/users/:device_id/:lat/:lng' do
+  content_type "application/json"
 
-  # # Update my location & last_online by uid & return me
-  # if (uid = params[:uid]) != '0' && # not new user
-  #    (me = users.find({"_id" => (uid = BSON::ObjectId(uid))}).first)
-  #   users.update({"_id" => uid}, {"$set" => updates})
+  device_id = params[:device_id]
+
+  # # Update my location & last_online by user_id & return me
+  # if (user_id = params[:user_id]) != '0' && # not new user
+  #    (me = USERS.find({"_id" => (user_id = BSON::ObjectId(user_id))}).first)
+  #   USERS.update({"_id" => user_id}, {"$set" => updates})
   #   me.merge updates
   # else # create new user
-  #   # insert_with_device_id(params[:did]) # add to POST method too.
-  #   me = {USR[:devices] => [params[:did]]}.merge updates
-  #   users.insert(me)
+  #   # insert_with_device_id(params[:device_id]) # add to POST method too.
+  #   me = {USR[:devices] => [params[:device_id]]}.merge updates
+  #   USERS.insert(me)
   # end
 
   # How should we store timestamps?
   # "created" : { "d" : "2010-03-29", "t" : "20:15:34" }
   # "created" : "12343545234"
 
+  user = User.find_by_device_id(device_id)
+  return "0" if user.nil?
+
+  # If user exists, update: location, last_online, updated_date.
+  interest_id = params[:interest_id]
+  lat = params[:lat].to_f
+  lng = params[:lng].to_f
+  now = Time.now # fix time
+  updates = {USR[:location] => [lat, lng], USR[:last_online] => now,
+      USR[:updated_date] => now}  
+  USERS.update({devices: device_id}, {"$set" => updates})
+
   # Return users nearby with similar interest.
   # http://www.mongodb.org/display/DOCS/Geospatial+Indexing
   nearby_users = interest_id == "0" ?
-    users.find({USR[:location] => {"$near" => [lat, lng]}}, {:limit => 200}) :
-    users.find({USR[:location] => {"$near" => [lat, lng]},
+    USERS.find({USR[:location] => {"$near" => [lat, lng]}}, {:limit => 200}) :
+    USERS.find({USR[:location] => {"$near" => [lat, lng]},
                 USR[:interests] => interest_id}, {:limit => 200})
 
-  content_type "application/json"
+  JSON.pretty_generate(nearby_users.to_a)
   # JSON.pretty_generate(([me]+nearby_users.to_a).map { |u|
   #   u.merge "created" => (u["_id"] || u[:_id]).generation_time.to_i })
   # JSON.pretty_generate([me]+nearby_users.to_a)
-  JSON.pretty_generate(nearby_users.to_a)
-  # Example with group
-  # db.places.find( { location : { $near : [50,50] }, group : 'baseball' } );
 end
 
 # Handle a user's request to add a new interest.
-post '/interests/:iid' do
-  DB.collection("users").update({:_id => BSON::ObjectId(params[:uid])},
-      {:$addToSet => {USR[:interests] => params[:iid]}}) # add unless exists
+post '/interests/:interest_id' do
+  USERS.update({:_id => BSON::ObjectId(params[:user_id])},
+      {:$addToSet => {USR[:interests] => params[:interest_id]}}) # add unless exists
   "OK"
 end
 
 # Handle a user's request to remove a new interest.
-delete '/interests/:iid' do
-  DB.collection("users").update({:_id => BSON::ObjectId(params[:uid])},
-      {:$pull => {USR[:interests] => params[:iid]}})
+delete '/interests/:interest_id' do
+  USERS.update({:_id => BSON::ObjectId(params[:user_id])},
+      {:$pull => {USR[:interests] => params[:interest_id]}})
   "OK"
 end
 
@@ -186,10 +191,9 @@ put '/:obj_id' do
     # thb = thb_grid.put(thb_tmp.read, :_id => obj_id, :content_type => pic[:type])
   end
 
-  users = DB.collection("users")
   # convert numeric Strings to Fixnums
   params.each_pair {|k, v| params[k] = Integer(v) rescue v }
-  users.update({"_id" => obj_id}, {"$set" => params})
+  USERS.update({"_id" => obj_id}, {"$set" => params})
 
   "OK"
 end
@@ -203,7 +207,6 @@ delete '/:obj_id' do
   grid = Mongo::Grid.new(DB, "usr_thb")
   grid.delete(obj_id)
 
-  users = DB.collection("users")
-  users.remove({:_id => obj_id})
+  USERS.remove({:_id => obj_id})
   "OK"
 end
