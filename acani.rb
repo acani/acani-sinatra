@@ -6,12 +6,17 @@ require './constants.rb'
 
 Dir["./models/*.rb"].each {|f| require f} # require models
 
-configure :development do
+configure :test do
   require 'ruby-debug'
-  DB = Mongo::Connection.new.db("acani")
+  DB = Mongo::Connection.new.db("acani-test")
 end
 
-configure :production do
+configure :development do
+  require 'ruby-debug'
+  DB = Mongo::Connection.new.db("acani-staging") # should be acani
+end
+
+configure :staging, :production do
   require 'uri'
   uri = URI.parse(ENV['MONGOHQ_URL'])
   conn = Mongo::Connection.from_uri(ENV['MONGOHQ_URL'])

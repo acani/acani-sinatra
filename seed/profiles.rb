@@ -7,7 +7,7 @@ DIR = File.dirname(__FILE__)
 ABS = File.expand_path(DIR)
 $LOAD_PATH << File.expand_path(File.join(DIR, ".."))
 require 'constants'
-require File.join("seed", "config")
+require File.join("seed", "config") # gitignored file; sets FLICKR_API_KEY="..."
 
 interests_yml = File.join(ABS, "interests.yml")
 pic_dir       = File.join(ABS, "pics-thbs")
@@ -41,8 +41,8 @@ def rel_stat
 end
 
 conn = Mongo::Connection.new
-conn.drop_database("acani")
-db = conn.db("acani")
+conn.drop_database("acani-staging")
+db = conn.db("acani-staging")
 
 # The devices collection stores data about the device
 # devices = db.collection("devices")
@@ -252,7 +252,7 @@ EOF
   users.insert({ # for most attributes: nil:do not show
     USR[:about] => about || Faker::Lorem.sentence,
     USR[:weight] => rand(45) + 100, # lbs
-    USR[:devices] => [], # ids
+    USR[:devices] => [Faker::Product.model], # ids
     USR[:show_distance] => rand(2), # 0:hide, 1:show
     USR[:ethnicity] => rand(7), # See ethnicity method above
     USR[:favorites] => [], # ids
@@ -284,11 +284,15 @@ users.create_index([[USR[:location], "2d"], [USR[:interests], 1]])
 
 puts
 
+puts "Success! Database seeded with user info & photos."
+
+puts
+
 unless no_internet_connection
   puts doc = attr_doc + link_text
   File.open(pic_dir+'/README.md', 'w') { |f| f.write(doc) }
 else
-  puts "Didn't update photo metadata because couldn't connect to Flickr"
+  puts "Didn't update README.md with photo metadata because couldn't connect to Flickr."
 end
 
 # m = Mongo::Connection.new # (optional host/port args)
