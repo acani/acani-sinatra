@@ -1,0 +1,3 @@
+[submodule "seed/fake_profile_pictures"]
+	path = seed/fake_profile_pictures
+	url = git@github.com:acani/fake_profile_pictures.git
