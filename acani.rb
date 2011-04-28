@@ -23,7 +23,7 @@ configure :staging, :production do
   DB = conn.db(uri.path.gsub(/^\//, ''))
 end
 
-USERS = DB.collection("users")
+USERS = DB.collection("u")
 set :haml, {:format => :html5} # default Haml format was :xhtml. Is it still?
 
 # # Get all users linked with the specified device.
@@ -127,12 +127,9 @@ get '/sample-json' do
 end
 
 def pic_fs_name
-  case params[:type]
-  when "large"
-    "usr_pic"
-  else
-    "usr_thb"
-  end
+  type = params[:type] == "large" ? params[:type] : "square"
+  type << params[:retna] if params[:retna] == "2x"
+  COL[:photos][type.to_sym]
 end
 
 # # Get a specific object's picture.

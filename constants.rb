@@ -1,4 +1,4 @@
-DB = {
+COL = {
   photos: {
     large2x: "m",
     large: "l",

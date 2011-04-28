@@ -77,10 +77,10 @@ module FakeProfilePictures
 
       db = Mongo::Connection.new.db(database)      
       users = db.collection(collection)
-      lg2_grid = Mongo::Grid.new(db, DB[:photos][:large2x]) # 640x960
-      lrg_grid = Mongo::Grid.new(db, DB[:photos][:large]) # 320x480
-      sq2_grid = Mongo::Grid.new(db, DB[:photos][:square2x]) # 150x150
-      sqr_grid = Mongo::Grid.new(db, DB[:photos][:square]) # 75x75
+      lg2_grid = Mongo::Grid.new(db, COL[:photos][:large2x]) # 640x960
+      lrg_grid = Mongo::Grid.new(db, COL[:photos][:large]) # 320x480
+      sq2_grid = Mongo::Grid.new(db, COL[:photos][:square2x]) # 150x150
+      sqr_grid = Mongo::Grid.new(db, COL[:photos][:square]) # 75x75
 
       generate_readme do |p, i|
         # Insert user's picture into GridFS. Every picture has four images.
