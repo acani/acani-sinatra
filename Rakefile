@@ -1,5 +1,6 @@
-desc "Seed the MongoDB user collection from the stored Flickr photo metadata."
-task :seed, :db_name do
-  args.with_defaults(:db_name => "acani", :collection => "users")
-  FakeProfilePictures.seed_mongodb
+desc "Seed the MongoDB user collection from the Flickr photo info."
+task :seed, :database, :collection do |t, args|
+  args.with_defaults(:database => "acani-staging", :collection => "users")
+  require File.expand_path File.join(File.dirname(__FILE__), "seed", "profiles")
+  FakeProfilePictures.seed_database(args.database, args.collection)
 end
