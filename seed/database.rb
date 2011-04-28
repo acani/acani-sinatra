@@ -1,13 +1,51 @@
-DF = File.dirname(__FILE__)
-$LOAD_PATH << File.expand_path(File.join(DF, "fake_profile_pictures", "lib"))
-require File.expand_path(File.join(DF, "..", "constants"))
-require 'fake_profile_pictures'
 require 'mongo'
 require 'ffaker'
 
+module Acani
+  SEED_DIR = File.expand_path(File.dirname(__FILE__))
+  $LOAD_PATH << File.join(SEED_DIR, "fake_profile_pictures", "lib")
+  require File.expand_path(File.join(SEED_DIR, "..", "constants"))
+  require 'fake_profile_pictures'
+
+  class << self
+    def drop_database(database="acani-staging")
+      Mongo::Connection.new.drop_database(database)
+    end
+
+    # TODO: add more interests.
+    # Think about how to best organize interests in MongoDB.
+    def seed_interests(database="acani-staging", collection="i")
+      interests = Mongo::Connection.new.db(database).collection(collection)
+      interests.drop
+      @@interest_id = 0
+      require 'yaml'
+      interests_yml = File.join(SEED_DIR, "interests.yml")
+      interests_hash = YAML::load_file(interests_yml)
+      def interests.insert_interest(interest_object, parent_id=nil)
+        interest_id = @@interest_id.to_s(36)
+        if interest_object.instance_of? String # base case
+          insert({:_id => interest_id, :n => interest_object, :p => parent_id})
+          @@interest_id += 1
+        else # it's a hash
+          interest_k_v = interest_object.first # get the only key-value pair in hash
+          interest_name = interest_k_v[0] # key is the name
+          insert({:_id => interest_id, :n => interest_name, :p => parent_id})
+          @@interest_id += 1
+          interest_k_v[1].each do |i| # value is an array of children
+            insert_interest(i, interest_id)
+          end
+        end
+      end
+      interests.insert_interest interests_hash
+      puts "Seeded #{collection} collection in #{database} database with interests.yml."
+      puts
+    end
+  end
+end
+
 module FakeProfilePictures
   class << self
-    def seed_database(database, collection)
+    def seed_users(database="acani-staging", collection="u")
       # Return a Unix timestamp within x days from now.
       def within_months(month_range, months_since_now=0)
         Time.now.to_i - months_since_now*2_629_743 - rand(month_range*2_629_743)
@@ -33,11 +71,12 @@ module FakeProfilePictures
         end
       end
 
-      conn = Mongo::Connection.new
-      conn.drop_database(database)
-      db = conn.db(database)
-      
-      users = db.collection("users")
+      # Just drop db cause easier than droping Grids and indexes.
+      # [users, lg2_grid, lrg_grid, sq2_grid, sqr_grid].each { |c| c.drop }
+      Acani.drop_database(database)
+
+      db = Mongo::Connection.new.db(database)      
+      users = db.collection(collection)
       lg2_grid = Mongo::Grid.new(db, DB[:photos][:large2x]) # 640x960
       lrg_grid = Mongo::Grid.new(db, DB[:photos][:large]) # 320x480
       sq2_grid = Mongo::Grid.new(db, DB[:photos][:square2x]) # 150x150
@@ -88,13 +127,23 @@ module FakeProfilePictures
       users.create_index([[USR[:location], "2d"], [USR[:interests], 1]])
 
       puts "Success! Regenerated fake_profile_pictures/README.md."
+      puts
       puts "Seeded #{collection} collection in #{database} database with user info & photos."
       puts
     end
   end
 end
 
-# # FakeProfilePictures.seed_mongodb
-# puts Photo.new("large_1234@2x.jpg").flickr_id
-# puts args.db_name
-# puts args.collection
+### Extra stuff below:
+
+# The devices collection stores data about the device
+# devices = db.collection("devices")
+# device = {
+#   :id => ,
+#   :users => [
+#     :id => "1231jfkj123",
+#     :name => "Matt"
+#   ], # ids & names only
+#   :os => 4
+#   # ...
+# }
