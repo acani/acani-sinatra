@@ -42,13 +42,13 @@ end
 # 1. User signs in. Respond with their info if found.
 get "/users/:device_id" do |device_id|
   content_type "application/json"
-  # USERS.insert({device_id: "123", updated_date: "2011-09-21"})
+  # USERS.insert({device_id: "123", updated_time: "2011-09-21"})
 
   user = User.find_by_device_id(device_id)
   # sleep 2 # mock a slow connection
-  # If found, send device the updated_date so it knows user info is up to date.
+  # If found, send device the updated_time so it knows user info is up to date.
   # Else, send 0 to let the device know that user doesn't yet exist.
-  user.nil? ? "0" : "\"#{user.updated_date}\""
+  user.nil? ? "0" : "\"#{user.updated_time}\""
 end
 
 # # 2. Create a new user (default) and respond with user_id & users nearby.
@@ -80,13 +80,13 @@ get '/interests/:interest_id/users/:device_id/:lat/:lng' do
   user = User.find_by_device_id(device_id)
   return "0" if user.nil?
 
-  # If user exists, update: location, last_online, updated_date.
+  # If user exists, update: location, last_online, updated_time.
   interest_id = params[:interest_id]
   lat = params[:lat].to_f
   lng = params[:lng].to_f
   now = Time.now # fix time
   updates = {USR[:location] => [lat, lng], USR[:last_online] => now,
-      USR[:updated_date] => now}  
+      USR[:updated_time] => now}  
   USERS.update({devices: device_id}, {"$set" => updates})
 
   # Return users nearby with similar interest.
@@ -100,6 +100,14 @@ get '/interests/:interest_id/users/:device_id/:lat/:lng' do
   # JSON.pretty_generate(([me]+nearby_users.to_a).map { |u|
   #   u.merge "created" => (u["_id"] || u[:_id]).generation_time.to_i })
   # JSON.pretty_generate([me]+nearby_users.to_a)
+end
+
+# Update a user's location in the background. Should be PUT, but GET is easier.
+get "/users/:user_id/location/:latitude/:longitude" do
+  # User.new(params[:user_id]).update_location(params[:x], params[:y])
+  USERS.update({:_id => BSON::ObjectId(params[:user_id])}, {
+    USR[:location] => [params[:latitude], params[:longitude]],
+    USR[:updated_time] => Time.now}
 end
 
 # Handle a user's request to add a new interest.

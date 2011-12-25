@@ -1,5 +1,5 @@
 class User
-  attr_accessor :id, :devices # , :updated_date
+  attr_accessor :id, :devices # , :updated_time
   alias_method(:_id, :id); alias_method(:_id=, :id=)
   alias_method(:c, :devices); alias_method(:c=, :devices=)
   

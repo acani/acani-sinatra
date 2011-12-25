@@ -112,7 +112,7 @@ module FakeProfilePictures
           USR[:headline] => p.title || Faker::Name.name,
           USR[:last_online] => within_months(3), # (UNIX timestamp)
           USR[:sex] => rand(2), # 0:female, 1:male
-          USR[:updated_date] => within_months(3), # (UNIX timestamp)
+          USR[:updated_time] => within_months(3), # (UNIX timestamp)
           USR[:fb_username] => Faker::Internet.user_name,
           USR[:likes] => rand(3), # 0:women, 1:men, 2:both
           USR[:website] => (rand < 0.3 ? '' : 'www.') + Faker::Internet.domain_name,

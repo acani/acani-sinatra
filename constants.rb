@@ -27,7 +27,7 @@ USR = {
   headline: :q, # quote
   last_online: :r, # recent
   sex: :s,
-  updated_date: :t, # time
+  updated_time: :t, # time
   fb_username: :u,
   likes: :v, # valentines
   website: :w,
